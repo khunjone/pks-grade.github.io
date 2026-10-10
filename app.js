@@ -1,0 +1,1003 @@
+"use strict";
+
+// วาง URL Web App ที่ลงท้าย /exec จาก Apps Script
+const API_URL = "วาง_URL_APPS_SCRIPT_ที่ลงท้าย_exec_ตรงนี้";
+
+const $ = selector => document.querySelector(selector);
+const E = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;",
+  '"': "&quot;", "'": "&#39;"
+}[ch]));
+
+const GRADE_OPTIONS = [
+  "", "0", "1", "1.5", "2", "2.5", "3", "3.5", "4",
+  "ร", "มส", "ผ", "มผ"
+];
+
+let session = null;
+let roomData = null;
+let adminData = null;
+let selectedSubject = "";
+let values = new Map();
+let dirty = new Map();
+let busy = false;
+let lastActivity = Date.now();
+let lastPing = Date.now();
+let excelPromise = null;
+
+function message(text, error = false) {
+  $("#notice").textContent = text;
+  $("#notice").classList.toggle("error", error);
+  $("#notice").hidden = !text;
+}
+
+async function api(action, payload = {}, token = session?.token) {
+  if (!API_URL.startsWith("https://script.google.com/")) {
+    throw new Error("กรุณาตั้งค่า API_URL ใน app.js ก่อนใช้งาน");
+  }
+
+  const response = await fetch(API_URL, {
+    method: "POST",
+    mode: "cors",
+    credentials: "omit",
+    redirect: "follow",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action, ...payload, token })
+  });
+
+  let result;
+  try {
+    result = await response.json();
+  } catch (_) {
+    throw new Error(
+      "ปลายทางไม่ได้ส่งข้อมูล JSON กรุณาตรวจ URL /exec และสิทธิ์ Web App"
+    );
+  }
+
+  if (!result.ok) throw new Error(result.error || "ดำเนินการไม่สำเร็จ");
+  return result.data;
+}
+
+async function run(fn) {
+  if (busy) return;
+  busy = true;
+  $("#loading").hidden = false;
+  document.body.setAttribute("aria-busy", "true");
+  message("");
+
+  try {
+    await fn();
+  } catch (error) {
+    message(
+      error.message === "Failed to fetch"
+        ? "เชื่อมต่อไม่ได้ กรุณาตรวจอินเทอร์เน็ตและการเผยแพร่ Apps Script หากเพิ่งบันทึก ให้โหลดตรวจข้อมูลก่อนส่งซ้ำ"
+        : error.message,
+      true
+    );
+  } finally {
+    busy = false;
+    $("#loading").hidden = true;
+    document.body.removeAttribute("aria-busy");
+  }
+}
+
+function setConfig(config) {
+  $("#schoolName").textContent = config.school;
+  document.title = `${config.school} | ผลการเรียน 1/2569`;
+}
+
+function switchTab(staff) {
+  $("#studentForm").hidden = staff;
+  $("#staffForm").hidden = !staff;
+  $("#studentTab").classList.toggle("secondary", staff);
+  $("#staffTab").classList.toggle("secondary", !staff);
+  message("");
+}
+
+function logoutLocal() {
+  const token = session?.token;
+  session = null;
+  roomData = null;
+  adminData = null;
+  values.clear();
+  dirty.clear();
+  $("#content").replaceChildren();
+  $("#workspace").hidden = true;
+  $("#loginView").hidden = false;
+  $("#studentForm").reset();
+  $("#staffForm").reset();
+  $("#userLabel").textContent = "";
+  $("#secretValue").textContent = "";
+  $("#secretDialog").close();
+  if (token) api("logout", {}, token).catch(() => {});
+}
+
+async function enter(data) {
+  session = data;
+  lastActivity = Date.now();
+  lastPing = Date.now();
+  setConfig(data.config);
+  $("#loginView").hidden = true;
+  $("#workspace").hidden = false;
+  $("#studentForm").reset();
+  $("#staffForm").reset();
+
+  if (data.role === "student") {
+    $("#userLabel").textContent = data.report.student.full_name;
+    renderStudent(data.report);
+  } else {
+    $("#userLabel").textContent =
+      `${data.display_name} · ${data.role === "admin" ? "ผู้ดูแลระบบ" : "ครู"}`;
+
+    if (data.role === "teacher") {
+      if (!data.rooms.length) {
+        $("#content").innerHTML =
+          '<div class="card">ยังไม่มีห้องที่ได้รับมอบหมาย กรุณาติดต่อผู้ดูแล</div>';
+      } else {
+        await loadRoom(data.rooms[0]);
+      }
+    } else {
+      await loadAdmin();
+    }
+  }
+}
+
+function renderStudent(report) {
+  const s = report.student;
+  const heading = `
+    <div class="card">
+      <span class="badge">ผลการเรียนประจำภาคเรียน</span>
+      <h1 style="margin-top:14px">${E(s.full_name)}</h1>
+      <p class="muted">
+        รหัสนักเรียน ${E(s.student_code)} ·
+        ชั้น ${E(s.class_level)}/${E(s.room)}
+      </p>
+      <p>ภาคเรียนที่ 1 ปีการศึกษา 2569</p>
+    </div>`;
+
+  if (!report.published) {
+    $("#content").innerHTML = heading + `
+      <div class="card">
+        <h2>ยังไม่ประกาศผลการเรียน</h2>
+        <p class="muted">ผลจะปรากฏเมื่อครูตรวจสอบและอนุมัติเรียบร้อยแล้ว</p>
+        <button type="button" class="secondary"
+          data-action="refreshReport">ตรวจสอบอีกครั้ง</button>
+      </div>`;
+    return;
+  }
+
+  $("#content").innerHTML = heading + `
+    <div class="grid3">
+      <div class="stat">
+        <span>รายวิชาทั้งหมด</span>
+        <strong>${report.grades.length}</strong>
+      </div>
+      <div class="stat">
+        <span>สถานะผลการเรียน</span>
+        <strong style="font-size:1.25rem">อนุมัติแล้ว</strong>
+      </div>
+      <div class="stat gpa">
+        <span>${E(report.gpa_note)}</span>
+        <strong>${E(report.gpa ?? "—")}</strong>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <h2>เกรดรายวิชา</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>รายวิชา</th><th>เกรด</th></tr></thead>
+          <tbody>${report.grades.map(g => `
+            <tr>
+              <td>${E(g.subject_name)}</td>
+              <td><span class="grade-pill">${E(g.value)}</span></td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+      <p class="muted" style="margin-top:16px">
+        ข้อมูลนี้ไม่ใช่เอกสารรับรองผลการเรียนอย่างเป็นทางการ
+      </p>
+      <button type="button" class="secondary"
+        data-action="refreshReport">รีเฟรชผลการเรียน</button>
+    </div>`;
+}
+
+function keyOf(studentCode, subjectCode) {
+  return studentCode + "|" + subjectCode;
+}
+
+function adoptRoom(data) {
+  roomData = data;
+  values = new Map(data.grades.map(g => [
+    keyOf(g.student_code, g.subject_code), g.value
+  ]));
+  dirty.clear();
+  if (!data.subjects.some(s => s.subject_code === selectedSubject)) {
+    selectedSubject = data.subjects[0]?.subject_code || "";
+  }
+  renderTeacher();
+}
+
+async function loadRoom(room) {
+  adoptRoom(await api("room", { room }));
+}
+
+function gradeSelect(student, subject) {
+  const value = values.get(keyOf(student.student_code, subject)) || "";
+  const subjectInfo = roomData.subjects.find(s => s.subject_code === subject);
+  const options = GRADE_OPTIONS.filter(v =>
+    !subjectInfo.include_in_gpa || !["ผ", "มผ"].includes(v)
+  );
+  // ถ้าข้อมูลเก่ามีค่าที่ไม่ตรงเกณฑ์ ให้ครูเห็นและแก้ไข
+  if (value && !options.includes(value)) options.push(value);
+
+  return `
+    <select data-grade="${E(student.student_code)}"
+      aria-label="เกรดของ ${E(student.full_name)}"
+      ${roomData.locked ? "disabled" : ""}>
+      ${options.map(v => `
+        <option value="${E(v)}" ${v === value ? "selected" : ""}>
+          ${E(v || "ยังไม่กรอก")}
+        </option>`).join("")}
+    </select>`;
+}
+
+function renderTeacher() {
+  const r = roomData;
+  $("#content").innerHTML = `
+    <div class="card">
+      <div class="row between">
+        <div>
+          <h1>บันทึกเกรดรายห้อง</h1>
+          <p class="muted">กรอกเฉพาะเกรด · ภาคเรียนที่ 1/2569</p>
+        </div>
+        <span class="badge">
+          ${r.locked ? "อนุมัติแล้ว · ล็อกการแก้ไข" : "ฉบับร่าง"}
+        </span>
+      </div>
+
+      <div class="toolbar">
+        <label>ชั้น/ห้อง
+          <select id="roomSelect">
+            ${session.rooms.map(room => `
+              <option value="${E(room)}"
+                ${room === r.room ? "selected" : ""}>${E(room)}</option>
+            `).join("")}
+          </select>
+        </label>
+        <label>รายวิชา
+          <select id="subjectSelect">
+            ${r.subjects.map(s => `
+              <option value="${E(s.subject_code)}"
+                ${s.subject_code === selectedSubject ? "selected" : ""}>
+                ${E(s.subject_name)}
+              </option>`).join("")}
+          </select>
+        </label>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" class="secondary"
+          data-action="gradeTemplate">ดาวน์โหลด Excel ห้องนี้</button>
+        <button type="button" class="secondary"
+          data-action="pickGrades" ${r.locked ? "disabled" : ""}>
+          นำเข้าเกรด Excel
+        </button>
+        <button type="button" class="ghost"
+          data-action="reloadRoom">โหลดข้อมูลใหม่</button>
+        <input id="gradeFile" type="file" accept=".xlsx" hidden>
+      </div>
+
+      <div class="status">
+        นักเรียน ${r.students.length} คน ·
+        <span id="dirtyCount">${dirty.size}</span> รายการยังไม่บันทึก
+      </div>
+
+      <div class="table-wrap" style="margin-top:16px">
+        <table>
+          <thead>
+            <tr><th>รหัสนักเรียน</th><th>ชื่อ–นามสกุล</th><th>เกรด</th></tr>
+          </thead>
+          <tbody>
+            ${r.students.map(s => `
+              <tr>
+                <td>${E(s.student_code)}</td>
+                <td>${E(s.full_name)}</td>
+                <td>${gradeSelect(s, selectedSubject)}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" data-action="saveGrades"
+          ${r.locked ? "disabled" : ""}>บันทึกร่าง</button>
+        <button type="button" class="secondary"
+          data-action="checkGrades">ตรวจสอบทั้งห้อง</button>
+        ${r.locked
+          ? `<button type="button" class="danger"
+               data-action="unapprove">ยกเลิกอนุมัติเพื่อแก้ไข</button>`
+          : `<button type="button" class="success"
+               data-action="approve">อนุมัติผลทั้งห้อง</button>`}
+      </div>
+      <small>
+        การสลับวิชายังเก็บรายการที่แก้ไขไว้ แต่ต้องกดบันทึกร่างก่อนออกจากห้อง
+        การนำเข้า Excel จะบันทึกเป็นฉบับร่าง ไม่ประกาศผลทันที
+      </small>
+    </div>`;
+}
+
+function incompleteGrades() {
+  const missing = [];
+  roomData.students.forEach(s => {
+    roomData.subjects.forEach(subject => {
+      if ((values.get(keyOf(s.student_code, subject.subject_code)) ?? "") === "") {
+        missing.push(`${s.student_code} / ${subject.subject_name}`);
+      }
+    });
+  });
+  return missing;
+}
+
+async function loadAdmin() {
+  adminData = await api("adminData");
+  session.config = adminData.config;
+  setConfig(adminData.config);
+  renderAdmin();
+}
+
+function renderAdmin() {
+  const a = adminData;
+  $("#content").innerHTML = `
+    <div class="grid3">
+      <div class="stat"><span>นักเรียนทั้งหมด</span>
+        <strong>${a.student_count}</strong></div>
+      <div class="stat"><span>ห้องเรียน</span>
+        <strong>${a.rooms.length}</strong></div>
+      <div class="stat"><span>ภาคเรียน / ปีการศึกษา</span>
+        <strong>1 / 2569</strong></div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h2>นำเข้ารายชื่อนักเรียน</h2>
+      <p class="muted">
+        เพิ่มนักเรียนใหม่ครั้งละไม่เกิน 200 คน
+        ระบบไม่เขียนทับรหัสหรือเลขบัตรที่มีอยู่แล้ว
+      </p>
+      <div class="toolbar">
+        <button type="button" class="secondary"
+          data-action="studentTemplate">ดาวน์โหลดแม่แบบรายชื่อ</button>
+        <button type="button" data-action="pickStudents">นำเข้า Excel</button>
+        <input id="studentFile" type="file" accept=".xlsx" hidden>
+      </div>
+      <small>ไฟล์ถูกอ่านในเบราว์เซอร์ แล้วส่งข้อมูลไปยัง API ของโรงเรียน
+        ไม่อัปโหลดไฟล์ไป GitHub และไม่เก็บเลขบัตรเต็มในชีต</small>
+    </div>
+
+    <div class="card">
+      <h2>จัดการบัญชีบุคลากร</h2>
+      <form id="accountForm" class="stack">
+        <div class="grid2">
+          <label>ชื่อผู้ใช้
+            <input name="username" pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,39}"
+              required placeholder="เช่น teacher01">
+          </label>
+          <label>ชื่อที่แสดง
+            <input name="display_name" maxlength="120" required>
+          </label>
+        </div>
+        <label>บทบาท
+          <select name="role">
+            <option value="teacher">ครู</option>
+            <option value="admin">ผู้ดูแลระบบ</option>
+          </select>
+        </label>
+        <div>
+          <strong>ห้องที่รับผิดชอบ สำหรับบัญชีครู</strong>
+          <div class="checklist">
+            ${a.rooms.length ? a.rooms.map(room => `
+              <label><input type="checkbox" name="rooms" value="${E(room)}">
+                ${E(room)}</label>`).join("")
+              : '<span class="muted">นำเข้ารายชื่อนักเรียนก่อนสร้างบัญชีครู</span>'}
+          </div>
+        </div>
+        <div class="row">
+          <button type="submit">บันทึกบัญชี</button>
+          <button type="reset" class="secondary">ล้างแบบฟอร์ม</button>
+        </div>
+        <small>บัญชีใหม่จะได้รับรหัสผ่านสุ่ม บัญชีเดิมจะคงรหัสผ่านเดิมไว้</small>
+      </form>
+
+      <div class="table-wrap" style="margin-top:20px">
+        <table>
+          <thead><tr>
+            <th>ผู้ใช้</th><th>บทบาท / ห้อง</th><th>สถานะ</th><th>จัดการ</th>
+          </tr></thead>
+          <tbody>${a.accounts.map(account => `
+            <tr>
+              <td>${E(account.display_name)}<br>
+                <small>${E(account.username)}</small></td>
+              <td>${account.role === "admin" ? "ผู้ดูแลระบบ" : "ครู"}<br>
+                <small>${E(account.rooms.join(", "))}</small></td>
+              <td>${account.active ? "ใช้งาน" : "ปิดใช้งาน"}</td>
+              <td>
+                <div class="row">
+                  <button type="button" class="secondary"
+                    data-action="editAccount" data-user="${E(account.username)}">
+                    แก้ไข
+                  </button>
+                  <button type="button" class="secondary"
+                    data-action="resetPassword" data-user="${E(account.username)}">
+                    รหัสใหม่
+                  </button>
+                  <button type="button" class="danger"
+                    data-action="toggleAccount" data-user="${E(account.username)}">
+                    ${account.active ? "ปิด" : "เปิด"}ใช้งาน
+                  </button>
+                </div>
+              </td>
+            </tr>`).join("")}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ตั้งค่าโรงเรียนและ GPA</h2>
+      <form id="settingsForm" class="stack">
+        <label>ชื่อโรงเรียน
+          <input name="school" value="${E(a.config.school)}" maxlength="120" required>
+        </label>
+        <p class="muted">
+          ค่าเริ่มต้นให้น้ำหนักวิชาละ 1 แต่ยังไม่แสดง GPA
+          จนกว่าจะยืนยันว่าเกณฑ์ตรงกับโรงเรียน
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>รายวิชา</th><th>น้ำหนัก</th><th>คิด GPA</th>
+            </tr></thead>
+            <tbody>${a.config.subjects.map(s => `
+              <tr>
+                <td>${E(s.subject_name)}</td>
+                <td><input type="number" step="0.01" min="0.01" max="100"
+                  name="weight_${E(s.subject_code)}" value="${s.weight}"
+                  aria-label="น้ำหนัก ${E(s.subject_name)}" required></td>
+                <td><input type="checkbox" name="include_${E(s.subject_code)}"
+                  aria-label="นำ ${E(s.subject_name)} มาคิด GPA"
+                  ${s.include_in_gpa ? "checked" : ""}></td>
+              </tr>`).join("")}</tbody>
+          </table>
+        </div>
+        <label>
+          <input name="gpa_confirmed" type="checkbox"
+            ${a.config.gpa_confirmed ? "checked" : ""}>
+          ยืนยันน้ำหนักและรายวิชาที่คิด GPA ตามเกณฑ์โรงเรียน
+        </label>
+        <button type="submit">บันทึกการตั้งค่า</button>
+        <small>หากมีผลที่อนุมัติแล้ว จะเปลี่ยนเกณฑ์ GPA ไม่ได้
+          จนกว่าจะยกเลิกอนุมัติทุกห้อง</small>
+      </form>
+    </div>`;
+}
+
+function showSecret(username, password) {
+  $("#secretUser").textContent = "ชื่อผู้ใช้: " + username;
+  $("#secretValue").textContent = password;
+  $("#secretDialog").showModal();
+}
+
+async function excel() {
+  if (window.XLSX) return window.XLSX;
+  if (!excelPromise) {
+    excelPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "./vendor/xlsx.full.min.js";
+      script.onload = () => window.XLSX
+        ? resolve(window.XLSX)
+        : reject(new Error("ไม่พบไลบรารี Excel"));
+      script.onerror = () => {
+        excelPromise = null;
+        reject(new Error("กรุณาเพิ่ม vendor/xlsx.full.min.js ใน GitHub"));
+      };
+      document.head.appendChild(script);
+    });
+  }
+  return excelPromise;
+}
+
+async function downloadWorkbook(sheetName, rows, filename, instructions) {
+  const X = await excel();
+  const workbook = X.utils.book_new();
+  const worksheet = X.utils.aoa_to_sheet(rows);
+
+  // รหัสและเลขบัตรในแม่แบบรายชื่อเป็นข้อความ
+  const textColumns = sheetName === "students" ? [0, 1] : [0];
+  for (const col of textColumns) {
+    for (let row = 1; row <= 200; row++) {
+      const address = X.utils.encode_cell({ r: row, c: col });
+      if (!worksheet[address]) worksheet[address] = { t: "s", v: "" };
+      worksheet[address].z = "@";
+    }
+  }
+  const range = X.utils.decode_range(worksheet["!ref"] || "A1");
+  range.e.r = Math.max(range.e.r, 200);
+  worksheet["!ref"] = X.utils.encode_range(range);
+  worksheet["!cols"] = rows[0].map((_, i) => ({
+    wch: i === 1 ? 28 : 20
+  }));
+
+  X.utils.book_append_sheet(workbook, worksheet, sheetName);
+  X.utils.book_append_sheet(
+    workbook,
+    X.utils.aoa_to_sheet([
+      ["คำแนะนำ"],
+      ["ภาคเรียนที่ 1 ปีการศึกษา 2569"],
+      ...instructions.map(s => [s])
+    ]),
+    "คำแนะนำ"
+  );
+  X.writeFile(workbook, filename);
+}
+
+async function studentTemplate() {
+  await downloadWorkbook(
+    "students",
+    [
+      ["รหัสนักเรียน", "เลขบัตรประชาชน", "ชื่อ-นามสกุล", "ระดับชั้น", "ห้อง"],
+      ["ST001", "กรอกเลขจริง13หลัก", "นักเรียน ตัวอย่าง", "ป.6", "1"]
+    ],
+    "students_template_1_2569.xlsx",
+    [
+      "แถวตัวอย่างต้องแก้ไขก่อนนำเข้า ไม่ใช่ข้อมูลนักเรียนจริง",
+      "เลขบัตรประชาชนต้องเป็นข้อความ 13 หลัก รักษาเลขศูนย์ด้านหน้า",
+      "รองรับเฉพาะการเพิ่มนักเรียนใหม่ ไม่เขียนทับข้อมูลเดิม",
+      "นำเข้าไม่เกิน 200 คนต่อครั้ง และห้ามมีสูตร Excel",
+      "ห้ามนำไฟล์ที่มีข้อมูลจริงไปเผยแพร่หรืออัปโหลดลง GitHub"
+    ]
+  );
+}
+
+async function gradeTemplate() {
+  if (dirty.size) {
+    throw new Error("บันทึกร่างก่อนดาวน์โหลด เพื่อให้ Excel ตรงกับข้อมูลในระบบ");
+  }
+  const rows = [
+    ["รหัสนักเรียน", "ชื่อ-นามสกุล",
+      ...roomData.subjects.map(s => s.subject_name)],
+    ...roomData.students.map(student => [
+      student.student_code,
+      student.full_name,
+      ...roomData.subjects.map(subject =>
+        values.get(keyOf(student.student_code, subject.subject_code)) ?? ""
+      )
+    ])
+  ];
+
+  await downloadWorkbook(
+    "grades",
+    rows,
+    "grades_1_2569.xlsx",
+    [
+      "ใช้สำหรับห้อง " + roomData.room + " เท่านั้น",
+      "กรอกเฉพาะเกรด ไม่มีช่องคะแนน",
+      "อย่าเปลี่ยนชื่อหัวคอลัมน์",
+      "ช่องเกรดว่างจะล้างเกรดร่างของวิชานั้นสำหรับนักเรียนที่อยู่ในไฟล์",
+      "นักเรียนที่ไม่ได้อยู่ในไฟล์จะไม่ถูกแก้ไข",
+      "นำเข้าแล้วต้องกดอนุมัติทั้งห้อง จึงจะแสดงให้นักเรียนเห็น",
+      "ห้ามเผยแพร่ไฟล์ที่มีข้อมูลจริงในที่สาธารณะ"
+    ]
+  );
+}
+
+async function readExcel(file, sheetName, requiredHeaders) {
+  if (!file) throw new Error("กรุณาเลือกไฟล์");
+  if (!/\.xlsx$/i.test(file.name)) throw new Error("รองรับไฟล์ .xlsx เท่านั้น");
+  if (file.size > 2 * 1024 * 1024) {
+    throw new Error("ไฟล์ต้องไม่เกิน 2 MB");
+  }
+
+  const X = await excel();
+  const workbook = X.read(await file.arrayBuffer(), {
+    type: "array",
+    cellFormula: true
+  });
+  const worksheet = workbook.Sheets[sheetName];
+  if (!worksheet) throw new Error("ไม่พบแผ่นงานชื่อ " + sheetName);
+
+  if (Object.entries(worksheet).some(([key, cell]) =>
+    !key.startsWith("!") && cell && cell.f
+  )) {
+    throw new Error("ไฟล์นำเข้าต้องเป็นค่าโดยตรง ห้ามมีสูตร Excel");
+  }
+
+  const grid = X.utils.sheet_to_json(worksheet, {
+    header: 1,
+    defval: "",
+    raw: false,
+    blankrows: false
+  });
+
+  if (grid.length < 2) throw new Error("ไม่มีข้อมูลสำหรับนำเข้า");
+  const headers = grid[0].map(v => String(v).trim());
+  const nonempty = headers.filter(Boolean);
+  if (new Set(nonempty).size !== nonempty.length) {
+    throw new Error("พบชื่อหัวคอลัมน์ซ้ำ");
+  }
+  for (const header of requiredHeaders) {
+    if (!headers.includes(header)) {
+      throw new Error("ไม่พบคอลัมน์ " + header);
+    }
+  }
+
+  const rows = grid.slice(1)
+    .filter(row => row.some(v => String(v).trim() !== ""))
+    .map(row => Object.fromEntries(
+      headers.map((header, i) => [header, String(row[i] ?? "").trim()])
+    ));
+
+  if (!rows.length || rows.length > 200) {
+    throw new Error("นำเข้าได้ครั้งละ 1–200 แถว");
+  }
+  return rows;
+}
+
+async function importStudentFile(file) {
+  const data = await readExcel(file, "students", [
+    "รหัสนักเรียน", "เลขบัตรประชาชน", "ชื่อ-นามสกุล", "ระดับชั้น", "ห้อง"
+  ]);
+  const rows = data.map(r => ({
+    student_code: r["รหัสนักเรียน"],
+    national_id: r["เลขบัตรประชาชน"],
+    full_name: r["ชื่อ-นามสกุล"],
+    class_level: r["ระดับชั้น"],
+    room: r["ห้อง"]
+  }));
+
+  const invalid = rows.find(r => !/^\d{13}$/.test(r.national_id));
+  if (invalid) {
+    throw new Error(
+      "กรุณาตรวจเลขบัตร 13 หลักของ " + invalid.student_code +
+      " และแทนข้อมูลตัวอย่างก่อนนำเข้า"
+    );
+  }
+
+  if (!confirm(`เพิ่มนักเรียนใหม่ ${rows.length} คนเข้าสู่ระบบ?`)) return;
+  const result = await api("importStudents", { rows });
+  await loadAdmin();
+  message(`นำเข้านักเรียน ${result.imported} คนแล้ว`);
+}
+
+async function importGradeFile(file) {
+  if (dirty.size) {
+    throw new Error("กรุณาบันทึกหรือโหลดใหม่เพื่อล้างรายการที่ยังไม่บันทึกก่อนนำเข้า");
+  }
+  const data = await readExcel(file, "grades", [
+    "รหัสนักเรียน", ...roomData.subjects.map(s => s.subject_name)
+  ]);
+
+  const allowedStudents = new Set(
+    roomData.students.map(s => s.student_code)
+  );
+  const seen = new Set();
+  const records = [];
+
+  for (const row of data) {
+    const code = row["รหัสนักเรียน"];
+    if (!allowedStudents.has(code)) {
+      throw new Error("รหัสนักเรียนไม่อยู่ในห้องนี้: " + code);
+    }
+    if (seen.has(code)) throw new Error("รหัสนักเรียนซ้ำในไฟล์: " + code);
+    seen.add(code);
+
+    for (const subject of roomData.subjects) {
+      const value = row[subject.subject_name];
+      if (!GRADE_OPTIONS.includes(value)) {
+        throw new Error(
+          `เกรดไม่ถูกต้อง: ${code} / ${subject.subject_name}`
+        );
+      }
+      records.push({
+        student_code: code,
+        subject_code: subject.subject_code,
+        value
+      });
+    }
+  }
+
+  if (!confirm(
+    `นำเข้าเกรด ${data.length} คน เป็นฉบับร่าง?\n` +
+    "ช่องเกรดว่างในไฟล์จะล้างเกรดร่างเดิมของวิชานั้น"
+  )) return;
+
+  adoptRoom(await api("saveGrades", {
+    room: roomData.room,
+    version: roomData.version,
+    records
+  }));
+  message("นำเข้าเกรดเป็นฉบับร่างแล้ว กรุณาตรวจสอบก่อนอนุมัติ");
+}
+
+async function handleAction(button) {
+  const action = button.dataset.action;
+  const username = button.dataset.user;
+
+  if (action === "studentTab") return switchTab(false);
+  if (action === "staffTab") return switchTab(true);
+
+  if (action === "logout") {
+    if (dirty.size && !confirm("มีเกรดยังไม่บันทึก ต้องการออกจากระบบ?")) return;
+    logoutLocal();
+    message("ออกจากระบบแล้ว");
+    return;
+  }
+
+  if (action === "closeSecret") {
+    $("#secretValue").textContent = "";
+    $("#secretDialog").close();
+    return;
+  }
+
+  if (action === "copySecret") {
+    await navigator.clipboard.writeText($("#secretValue").textContent);
+    message("คัดลอกรหัสผ่านแล้ว");
+    return;
+  }
+
+  if (action === "refreshReport") {
+    renderStudent(await api("report"));
+    return;
+  }
+
+  if (action === "reloadRoom") {
+    if (dirty.size && !confirm("ละทิ้งเกรดที่ยังไม่บันทึกและโหลดใหม่?")) return;
+    await loadRoom(roomData.room);
+    return;
+  }
+
+  if (action === "saveGrades") {
+    if (!dirty.size) return message("ไม่มีรายการใหม่ที่ต้องบันทึก");
+    adoptRoom(await api("saveGrades", {
+      room: roomData.room,
+      version: roomData.version,
+      records: [...dirty.values()]
+    }));
+    message("บันทึกเกรดฉบับร่างแล้ว");
+    return;
+  }
+
+  if (action === "checkGrades") {
+    const missing = incompleteGrades();
+    message(missing.length
+      ? `ยังขาด ${missing.length} รายการ\n` +
+        missing.slice(0, 12).join("\n") +
+        (missing.length > 12 ? "\nและรายการอื่น ๆ" : "")
+      : "กรอกเกรด/สถานะครบทุกคนทุกวิชาแล้ว" +
+        (dirty.size ? " แต่ยังมีรายการที่ต้องบันทึก" : ""),
+      missing.length > 0
+    );
+    return;
+  }
+
+  if (action === "approve") {
+    if (dirty.size) throw new Error("กรุณาบันทึกร่างก่อนอนุมัติ");
+    if (incompleteGrades().length) {
+      throw new Error("เกรดยังไม่ครบ กรุณากดตรวจสอบทั้งห้อง");
+    }
+    if (!confirm(`ประกาศผลการเรียนห้อง ${roomData.room} ให้นักเรียนเห็น?`)) return;
+    adoptRoom(await api("approve", {
+      room: roomData.room, version: roomData.version
+    }));
+    message("อนุมัติและประกาศผลทั้งห้องแล้ว");
+    return;
+  }
+
+  if (action === "unapprove") {
+    const reason = prompt("ระบุเหตุผลที่ยกเลิกอนุมัติ");
+    if (!reason?.trim()) return;
+    adoptRoom(await api("unapprove", {
+      room: roomData.room,
+      version: roomData.version,
+      reason: reason.trim()
+    }));
+    message("ยกเลิกอนุมัติแล้ว ผลถูกซ่อนจากนักเรียนจนกว่าจะอนุมัติใหม่");
+    return;
+  }
+
+  if (action === "studentTemplate") return studentTemplate();
+  if (action === "gradeTemplate") return gradeTemplate();
+
+  if (action === "editAccount") {
+    const account = adminData.accounts.find(a => a.username === username);
+    const form = $("#accountForm");
+    form.elements.username.value = account.username;
+    form.elements.display_name.value = account.display_name;
+    form.elements.role.value = account.role;
+    form.querySelectorAll('[name="rooms"]').forEach(input => {
+      input.checked = account.rooms.includes(input.value);
+    });
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+
+  if (action === "resetPassword") {
+    if (!confirm("ออกรหัสผ่านใหม่ให้ " + username + "? รหัสเดิมจะใช้ไม่ได้")) return;
+    const result = await api("resetPassword", { username });
+
+    if (username === session.username) {
+      logoutLocal();
+      showSecret(result.username, result.password);
+      message("กรุณาเข้าสู่ระบบใหม่ด้วยรหัสผ่านที่เพิ่งออกให้");
+    } else {
+      await loadAdmin();
+      showSecret(result.username, result.password);
+    }
+    return;
+  }
+
+  if (action === "toggleAccount") {
+    if (!confirm("เปลี่ยนสถานะบัญชี " + username + "?")) return;
+    await api("toggleAccount", { username });
+    await loadAdmin();
+  }
+}
+
+document.addEventListener("click", event => {
+  const button = event.target.closest("[data-action]");
+  if (!button || busy) return;
+
+  // เปิดตัวเลือกไฟล์ภายใน user gesture โดยตรง
+  if (button.dataset.action === "pickStudents") {
+    $("#studentFile").click();
+    return;
+  }
+  if (button.dataset.action === "pickGrades") {
+    $("#gradeFile").click();
+    return;
+  }
+  run(() => handleAction(button));
+});
+
+document.addEventListener("submit", event => {
+  const form = event.target;
+  event.preventDefault();
+  if (!form.reportValidity()) return;
+
+  run(async () => {
+    const data = new FormData(form);
+
+    if (form.id === "studentForm") {
+      await enter(await api("studentLogin", {
+        national_id: data.get("national_id")
+      }));
+    } else if (form.id === "staffForm") {
+      await enter(await api("staffLogin", {
+        username: data.get("username"),
+        password: data.get("password")
+      }));
+    } else if (form.id === "accountForm") {
+      const result = await api("saveAccount", {
+        username: data.get("username"),
+        display_name: data.get("display_name"),
+        role: data.get("role"),
+        rooms: data.getAll("rooms")
+      });
+      await loadAdmin();
+      message("บันทึกบัญชีแล้ว");
+      if (result.password) showSecret(result.username, result.password);
+    } else if (form.id === "settingsForm") {
+      adminData = await api("saveSettings", {
+        school: data.get("school"),
+        gpa_confirmed: data.has("gpa_confirmed"),
+        subjects: adminData.config.subjects.map(s => ({
+          subject_code: s.subject_code,
+          weight: Number(data.get("weight_" + s.subject_code)),
+          include_in_gpa: data.has("include_" + s.subject_code)
+        }))
+      });
+      session.config = adminData.config;
+      setConfig(adminData.config);
+      renderAdmin();
+      message("บันทึกการตั้งค่าแล้ว");
+    }
+  });
+});
+
+document.addEventListener("change", event => {
+  const input = event.target;
+
+  if (input.matches("[data-grade]")) {
+    const studentCode = input.dataset.grade;
+    const key = keyOf(studentCode, selectedSubject);
+    values.set(key, input.value);
+
+    const saved = roomData.grades.find(g =>
+      g.student_code === studentCode && g.subject_code === selectedSubject
+    )?.value ?? "";
+
+    if (input.value === saved) dirty.delete(key);
+    else dirty.set(key, {
+      student_code: studentCode,
+      subject_code: selectedSubject,
+      value: input.value
+    });
+
+    $("#dirtyCount").textContent = String(dirty.size);
+    return;
+  }
+
+  if (input.id === "subjectSelect") {
+    selectedSubject = input.value;
+    renderTeacher();
+    return;
+  }
+
+  if (input.id === "roomSelect") {
+    if (dirty.size && !confirm("เปลี่ยนห้องและละทิ้งเกรดที่ยังไม่บันทึก?")) {
+      input.value = roomData.room;
+      return;
+    }
+    const targetRoom = input.value;
+    run(async () => {
+      try {
+        await loadRoom(targetRoom);
+      } catch (error) {
+        $("#roomSelect").value = roomData.room;
+        throw error;
+      }
+    });
+    return;
+  }
+
+  if (input.id === "studentFile" || input.id === "gradeFile") {
+    const file = input.files[0];
+    input.value = "";
+    if (file) run(() => input.id === "studentFile"
+      ? importStudentFile(file)
+      : importGradeFile(file)
+    );
+  }
+});
+
+["pointerdown", "keydown", "input"].forEach(type =>
+  document.addEventListener(type, () => {
+    lastActivity = Date.now();
+  }, { passive: true })
+);
+
+window.addEventListener("beforeunload", event => {
+  if (!dirty.size) return;
+  event.preventDefault();
+  event.returnValue = "";
+});
+
+// ป้องกันหน้าเดิมกลับมาพร้อมข้อมูลจาก back-forward cache
+window.addEventListener("pageshow", event => {
+  if (event.persisted) logoutLocal();
+});
+
+// ไม่มีการเก็บ token หรือผลการเรียนใน localStorage/sessionStorage
+setInterval(async () => {
+  if (!session || busy) return;
+  if (Date.now() - lastActivity > 10 * 60 * 1000) {
+    logoutLocal();
+    message("ออกจากระบบอัตโนมัติเนื่องจากไม่มีการใช้งาน 10 นาที");
+    return;
+  }
+
+  if (Date.now() - lastPing > 4 * 60 * 1000) {
+    lastPing = Date.now();
+    const token = session.token;
+    try {
+      await api("ping", {}, token);
+    } catch (_) {
+      if (session?.token === token) {
+        message("ตรวจสอบการเชื่อมต่อหรือเข้าสู่ระบบใหม่ก่อนบันทึก", true);
+      }
+    }
+  }
+}, 30000);
+
+run(async () => {
+  const config = await api("public");
+  setConfig(config);
+});
