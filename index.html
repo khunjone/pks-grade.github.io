@@ -42,7 +42,7 @@
       outline-offset: 3px;
     }
 
-    .container { width: min(1120px, 94%); margin: auto; }
+    .container { width: min(1350px, 96%); margin: auto; }
     header {
       display: flex; align-items: center; justify-content: space-between;
       gap: 16px; padding: 24px 0;
@@ -142,19 +142,34 @@
     .stat:nth-child(3) { background: #fff0cf; }
     .stat strong { font-size: 1.7rem; display: block; }
 
-    .scroll { overflow: auto; max-height: 65vh; border-radius: 14px; }
-    table { width: 100%; border-collapse: collapse; }
+    .scroll { overflow-x: auto; max-height: 68vh; border-radius: 14px; border: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; white-space: nowrap; }
     th, td {
-      padding: 13px 14px; text-align: left;
-      border-bottom: 1px solid var(--line); vertical-align: middle;
+      padding: 12px 10px; text-align: left;
+      border-bottom: 1px solid var(--line); border-right: 1px solid var(--line);
+      vertical-align: middle;
     }
 
     th {
       color: #525f79; font-weight: 700; background: #f6f7fc;
-      position: sticky; top: 0; z-index: 1;
+      position: sticky; top: 0; z-index: 2;
     }
 
-    td select { min-width: 105px; }
+    /* ตรึงคอลัมน์รหัสและชื่อนักเรียนให้อยู่กับที่เวลาเลื่อนตารางไปทางขวา */
+    th:nth-child(1), td:nth-child(1) {
+      position: sticky; left: 0; background: #f6f7fc; z-index: 3;
+      min-width: 90px;
+    }
+    td:nth-child(1) { background: #ffffff; }
+
+    th:nth-child(2), td:nth-child(2) {
+      position: sticky; left: 90px; background: #f6f7fc; z-index: 3;
+      min-width: 170px; box-shadow: 2px 0 5px rgba(0,0,0,0.03);
+    }
+    td:nth-child(2) { background: #ffffff; }
+
+    td select { min-width: 85px; padding: 6px 8px; min-height: 38px; }
+    
     .grade {
       display: inline-grid; place-items: center;
       min-width: 46px; padding: 4px 10px;
@@ -207,8 +222,6 @@
       .stats { gap: 8px; }
       .stat { padding: 13px; font-size: .8rem; }
       .stat strong { font-size: 1.4rem; }
-      th, td { padding: 11px 9px; }
-      .hide-mobile { display: none; }
     }
   </style>
 </head>
@@ -276,7 +289,7 @@
         <div class="card">
           <div class="row between">
             <div>
-              <h2>บันทึกเกรดนักเรียน</h2>
+              <h2>บันทึกเกรดนักเรียน (ตารางรวม 15 วิชา)</h2>
               <span id="staffLabel" class="muted"></span>
             </div>
             <span class="pill">ภาคเรียนที่ 1 ปีการศึกษา 2569</span>
@@ -284,52 +297,44 @@
 
           <div class="row space">
             <div class="grow">
-              <label for="roomSelect">ชั้น / ห้อง</label>
+              <label for="roomSelect">เลือกชั้น / ห้อง</label>
               <select id="roomSelect"></select>
             </div>
-            <div class="grow">
-              <label for="subjectSelect">รายวิชา</label>
-              <select id="subjectSelect"></select>
-            </div>
-            <button id="loadRoomBtn" class="secondary">โหลดข้อมูลห้อง</button>
+            <button id="loadRoomBtn" class="secondary" style="margin-top:28px">โหลดข้อมูลห้อง</button>
           </div>
         </div>
 
         <div id="classPanel" hidden>
           <div class="stats">
-            <div class="stat"><span>นักเรียน</span><strong id="studentCount">0</strong></div>
-            <div class="stat"><span>กรอกแล้ว / ทั้งหมด</span><strong id="gradeCount">0</strong></div>
-            <div class="stat"><span>สถานะ</span><strong id="classStatus">ร่าง</strong></div>
+            <div class="stat"><span>จำนวนนักเรียน</span><strong id="studentCount">0</strong></div>
+            <div class="stat"><span>ช่องที่กรอกแล้ว</span><strong id="gradeCount">0</strong></div>
+            <div class="stat"><span>สถานะห้อง</span><strong id="classStatus">ร่าง</strong></div>
           </div>
 
           <div class="card">
             <div class="row between">
-              <h3 id="subjectTitle"></h3>
+              <h3 id="roomTitle"></h3>
               <span id="dirtyLabel" class="muted small"></span>
             </div>
+            <p class="muted small">สามารถเลื่อนตารางไปทางขวาเพื่อกรเกรดวิชาอื่นๆ เพิ่มเติมได้</p>
+            
             <div class="scroll">
               <table>
-                <thead>
-                  <tr><th>รหัส</th><th>ชื่อ–นามสกุล</th><th>เกรด</th></tr>
-                </thead>
+                <thead id="gradeHeader"></thead>
                 <tbody id="gradeBody"></tbody>
               </table>
             </div>
 
-            <div class="actions">
-              <button id="saveBtn">บันทึกร่าง</button>
+            <div class="actions space">
+              <button id="saveBtn">บันทึกร่างทั้งหมด</button>
               <button id="publishBtn" class="teal">อนุมัติผลทั้งห้อง</button>
               <button id="unpublishBtn" class="danger">ยกเลิกอนุมัติ</button>
             </div>
 
             <div class="actions">
               <button id="gradeTemplateBtn" class="secondary">ดาวน์โหลดแม่แบบเกรด Excel</button>
-              <button id="gradeImportBtn" class="light">นำเข้าเกรด Excel</button>
+              <button id="gradeImportBtn" class="light">นำเข้าเกรดจาก Excel</button>
             </div>
-
-            <p class="muted small">
-              นำเข้าเกรดแล้วต้องกดบันทึกร่างก่อนอนุมัติ ช่องว่างไม่ใช่เกรด 0
-            </p>
           </div>
         </div>
 
@@ -534,10 +539,6 @@
       $('schoolName').textContent = meta.school;
       document.title = meta.school + ' | ผลการเรียน 1/2569';
 
-      $('subjectSelect').innerHTML = meta.subjects.map((s, i) =>
-        `<option value="${i}">${esc(s.name)}</option>`
-      ).join('');
-
       $('schoolInput').value = meta.school;
       $('settingsBody').innerHTML = meta.subjects.map((s, i) => `
         <tr>
@@ -689,32 +690,51 @@
 
       $('classPanel').hidden = false;
 
-      const index = Number($('subjectSelect').value || 0);
-      const subject = meta.subjects[index];
       const filled = c.students.reduce(
         (sum, s) => sum + s.values.filter(v => v !== '').length, 0
       );
+      const totalCells = c.students.length * meta.subjects.length;
 
       $('studentCount').textContent = c.students.length;
-      $('gradeCount').textContent = `${filled}/${c.students.length * meta.subjects.length}`;
+      $('gradeCount').textContent = `${filled} / ${totalCells}`;
       $('classStatus').textContent = c.published ? 'อนุมัติแล้ว' : c.locked ? 'ล็อกแล้ว' : 'ร่าง';
-      $('subjectTitle').textContent = c.room + ' · ' + subject.name;
-      $('dirtyLabel').textContent = dirty ? 'มีการแก้ไขที่ยังไม่บันทึก' : 'ข้อมูลที่โหลดล่าสุด';
+      $('roomTitle').textContent = `ห้องเรียน: ${c.room}`;
+      $('dirtyLabel').textContent = dirty ? 'มีการแก้ไขที่ยังไม่บันทึก' : 'ข้อมูลล่าสุดจากระบบ';
 
+      // สร้างหัวตาราง (รหัส, ชื่อ, และรายชื่อวิชาทั้ง 15 วิชา)
+      $('gradeHeader').innerHTML = `
+        <tr>
+          <th>รหัส</th>
+          <th>ชื่อ–นามสกุล</th>
+          ${meta.subjects.map(s => `<th>${esc(s.name)}</th>`).join('')}
+        </tr>
+      `;
+
+      // สร้างแถวข้อมูลนักเรียนแต่ละคนพร้อมช่องเลือกเกรดครบทุกวิชา
       $('gradeBody').innerHTML = c.students.map((s, rowIndex) => `
         <tr>
           <td>${esc(s.student_code)}</td>
           <td>${esc(s.full_name)}</td>
-          <td>
-            <select data-row="${rowIndex}" ${c.locked ? 'disabled' : ''}
-              aria-label="เกรด ${esc(s.full_name)}">
-              ${meta.gradeOptions.map(g => `
-                <option value="${esc(g)}" ${s.values[index] === g ? 'selected' : ''}>
-                  ${g === '' ? '— เลือก —' : esc(g)}
-                </option>
-              `).join('')}
-            </select>
-          </td>
+          ${s.values.map((val, colIndex) => {
+            const sub = meta.subjects[colIndex];
+            const options = meta.gradeOptions.filter(g =>
+              !sub.include || !['ผ', 'มผ'].includes(g)
+            );
+            if (val && !options.includes(val)) options.push(val);
+
+            return `
+              <td>
+                <select data-row="${rowIndex}" data-col="${colIndex}" ${c.locked ? 'disabled' : ''}
+                  aria-label="เกรด ${esc(s.full_name)} วิชา ${esc(sub.name)}">
+                  ${options.map(g => `
+                    <option value="${esc(g)}" ${val === g ? 'selected' : ''}>
+                      ${g === '' ? '—' : esc(g)}
+                    </option>
+                  `).join('')}
+                </select>
+              </td>
+            `;
+          }).join('')}
         </tr>
       `).join('');
 
@@ -897,15 +917,14 @@
       });
     };
 
-    $('subjectSelect').onchange = renderClass;
-
+    // จัดการเหตุการณ์เมื่อเปลี่ยนเกรดในตารางเมทริกซ์รวม
     $('gradeBody').onchange = event => {
       const select = event.target.closest('select[data-row]');
       if (!select || !currentClass || currentClass.locked) return;
 
       const row = Number(select.dataset.row);
-      const column = Number($('subjectSelect').value);
-      currentClass.students[row].values[column] = select.value;
+      const col = Number(select.dataset.col);
+      currentClass.students[row].values[col] = select.value;
       dirty = true;
       updateCompleteness();
 
@@ -913,8 +932,7 @@
         (sum, s) => sum + s.values.filter(v => v !== '').length, 0
       );
 
-      $('gradeCount').textContent =
-        `${filled}/${currentClass.students.length * meta.subjects.length}`;
+      $('gradeCount').textContent = `${filled} / ${currentClass.students.length * meta.subjects.length}`;
       $('dirtyLabel').textContent = 'มีการแก้ไขที่ยังไม่บันทึก';
       $('publishBtn').disabled = true;
     };
@@ -923,7 +941,7 @@
       await mutateClass('classSave', {
         rows: currentClass.students.map(s => ({ id: s.id, values: s.values }))
       });
-      notify('บันทึกเกรดฉบับร่างแล้ว');
+      notify('บันทึกเกรดฉบับร่างทั้งหมดเรียบร้อยแล้ว');
     });
 
     $('publishBtn').onclick = () => {
@@ -1045,7 +1063,7 @@
         dirty = true;
         updateCompleteness();
         renderClass();
-        notify('ตรวจและนำเข้าหน้าจอแล้ว กรุณากดบันทึกร่าง');
+        notify('ตรวจและนำเข้าหน้าจอแล้ว กรุณากดบันทึกร่างทั้งหมด');
       });
     };
 
