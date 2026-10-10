@@ -3,376 +3,1132 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
   <meta name="referrer" content="no-referrer">
   <title>ระบบผลการเรียน | 1/2569</title>
+
   <style>
     :root {
-      --primary: #4338ca;
-      --primary-dark: #312e81;
-      --ink: #17233d;
-      --muted: #526078;
-      --line: #dce3f0;
-      --danger: #a51d39;
-      --success: #096344;
-      --radius: 22px;
+      --bg: #f5f7ff;
+      --card: #ffffff;
+      --ink: #202642;
+      --muted: #626d86;
+      --primary: #6550dc;
+      --primary-dark: #4935b6;
+      --teal: #087f75;
+      --line: #e4e8f3;
+      --danger: #b42346;
+      --shadow: 0 14px 45px #3e427510;
     }
+
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
+
     body {
       margin: 0;
       color: var(--ink);
-      font-family: Tahoma, system-ui, sans-serif;
-      line-height: 1.6;
       background:
-        radial-gradient(circle at 8% 0%, #dfd7ff, transparent 38%),
-        radial-gradient(circle at 96% 20%, #c8f2ff, transparent 38%),
-        #f5f7fc;
-      min-height: 100vh;
+        radial-gradient(circle at 8% 0%, #dff9f4, transparent 35%),
+        radial-gradient(circle at 95% 12%, #eee0ff, transparent 35%),
+        var(--bg);
+      font: 16px/1.65 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
     }
+
     button, input, select { font: inherit; }
-    button, .button {
-      min-height: 46px;
-      border: 0;
-      border-radius: 12px;
-      padding: 10px 18px;
-      font-weight: bold;
-      cursor: pointer;
-      background: var(--primary);
-      color: white;
+    button, summary { cursor: pointer; }
+    button { touch-action: manipulation; }
+
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid #f4b63e;
+      outline-offset: 3px;
     }
-    button:hover { filter: brightness(.95); }
-    button:disabled { opacity: .55; cursor: not-allowed; }
-    button.secondary {
-      background: #e9e8ff;
-      color: var(--primary-dark);
-    }
-    button.danger { background: #fff0f3; color: var(--danger); }
-    button.success { background: var(--success); color: white; }
-    button.ghost { background: transparent; color: var(--primary); }
-    :focus-visible { outline: 3px solid #e78c09; outline-offset: 3px; }
-    input:not([type="checkbox"]), select {
-      width: 100%;
-      min-height: 48px;
-      border: 1px solid #aebbd0;
-      border-radius: 12px;
-      padding: 10px 12px;
-      background: white;
-      color: var(--ink);
-    }
-    input[type="checkbox"] {
-      width: 19px;
-      height: 19px;
-      accent-color: var(--primary);
-      vertical-align: middle;
-    }
-    label { display: block; font-weight: bold; }
-    label input, label select { margin-top: 6px; }
-    h1, h2, h3, p { margin-top: 0; }
-    h1 { font-size: clamp(1.4rem, 3vw, 2rem); }
-    h2 { font-size: 1.35rem; }
-    h3 { font-size: 1.05rem; }
-    small, .muted { color: var(--muted); }
-    .shell { width: min(1120px, 94%); margin: auto; }
+
+    .container { width: min(1120px, 94%); margin: auto; }
     header {
-      padding: 24px 0 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 24px 0;
     }
-    .brand { display: flex; gap: 12px; align-items: center; }
-    .brand-mark {
-      background: linear-gradient(135deg, #4338ca, #1679b2);
-      color: white;
-      width: 50px;
-      height: 50px;
-      display: grid;
-      place-items: center;
-      font-weight: bold;
-      border-radius: 16px;
-      flex-shrink: 0;
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 48px; height: 48px; border-radius: 16px;
+      background: linear-gradient(135deg, #6550dc, #238daf);
+      color: white; display: grid; place-items: center;
+      font-weight: 900; font-size: 23px;
     }
-    .badge {
-      display: inline-flex;
-      background: #fff0d8;
-      color: #754400;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: .86rem;
-      font-weight: bold;
+
+    .brand strong { display: block; line-height: 1.35; }
+    .muted { color: var(--muted); }
+    .small { font-size: .87rem; }
+
+    .pill {
+      display: inline-block; padding: 6px 13px;
+      border-radius: 100px; background: #eae5ff;
+      color: #4935ad; font-size: .85rem; font-weight: 700;
     }
+
     .card {
-      background: white;
-      border: 1px solid rgba(220, 227, 240, .9);
-      border-radius: var(--radius);
-      padding: clamp(18px, 3vw, 28px);
-      box-shadow: 0 10px 35px #20345b09;
+      padding: 26px; background: var(--card); border: 1px solid var(--line);
+      border-radius: 24px; box-shadow: var(--shadow);
       margin-bottom: 20px;
     }
-    .login-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 28px;
-      align-items: center;
-      padding: 28px 0;
-    }
+
     .hero {
-      border-radius: 28px;
-      padding: 38px;
-      color: white;
-      background: linear-gradient(135deg, #4338ca, #225cac, #0b7488);
-      position: relative;
-      overflow: hidden;
+      display: grid; grid-template-columns: 1.1fr 1fr;
+      align-items: center; gap: 40px; padding: 40px 0;
     }
-    .hero p { color: #eef4ff; }
-    .hero .badge {
-      background: #ffffff20;
-      color: white;
-      margin-bottom: 20px;
+
+    h1 { font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1.3; margin: 14px 0; }
+    h2 { font-size: 1.4rem; margin: 0 0 16px; }
+    h3 { margin: 0 0 12px; font-size: 1.1rem; }
+    p { margin: 10px 0; }
+
+    .gradient {
+      background: linear-gradient(100deg, #6550dc, #087f75);
+      background-clip: text; -webkit-background-clip: text;
+      color: transparent;
     }
-    .hero-number {
-      font-size: 4rem;
-      font-weight: bold;
-      line-height: 1;
-      margin-bottom: 12px;
+
+    .features { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .feature {
+      background: #ffffffa8; padding: 9px 14px;
+      border: 1px solid white; border-radius: 14px; font-size: .9rem;
     }
-    .tabs { display: flex; gap: 8px; margin-bottom: 22px; }
-    .tabs button { flex: 1; }
-    .stack { display: grid; gap: 16px; }
-    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+    .tabs {
+      display: flex; padding: 5px; background: #f0f2fa;
+      border-radius: 14px; gap: 5px; margin-bottom: 22px;
+    }
+
+    .tabs button { flex: 1; background: transparent; color: var(--muted); }
+    .tabs button.active { background: white; color: var(--primary-dark); }
+
+    button {
+      border: 0; border-radius: 12px; padding: 10px 17px;
+      font-weight: 700; background: var(--primary); color: white;
+    }
+
+    button:hover { filter: brightness(.96); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .secondary { background: #ede9ff; color: var(--primary-dark); }
+    .teal { background: var(--teal); }
+    .danger { background: #ffe5ed; color: var(--danger); }
+    .light { background: #f0f2f8; color: var(--ink); }
+    .full { width: 100%; }
+
+    label { display: block; font-weight: 650; margin: 12px 0 6px; }
+    input, select {
+      width: 100%; border: 1px solid #ccd3e3;
+      padding: 12px 14px; border-radius: 12px;
+      color: var(--ink); background: white; min-height: 47px;
+    }
+
+    input[type=checkbox] { width: 20px; min-height: 20px; accent-color: var(--primary); }
+    input[type=number] { min-width: 90px; }
+    form button[type=submit] { margin-top: 20px; }
+
+    .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .between { justify-content: space-between; }
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .stat {
-      padding: 18px;
-      border-radius: 16px;
-      background: #f1f4ff;
-      border: 1px solid #e1e7ff;
+    .grow { flex: 1; min-width: 180px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 9px; margin: 18px 0 0; }
+    .space { margin-top: 20px; }
+
+    .stats {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 20px;
     }
-    .stat strong { display: block; font-size: 1.7rem; }
-    .stat.gpa { background: #e7f8f1; color: #075c3e; }
-    .table-wrap { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+
+    .stat { border-radius: 19px; padding: 18px; background: #ede8ff; }
+    .stat:nth-child(2) { background: #daf5ee; }
+    .stat:nth-child(3) { background: #fff0cf; }
+    .stat strong { font-size: 1.7rem; display: block; }
+
+    .scroll { overflow: auto; max-height: 65vh; border-radius: 14px; }
+    table { width: 100%; border-collapse: collapse; }
     th, td {
-      padding: 13px 12px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      vertical-align: middle;
+      padding: 13px 14px; text-align: left;
+      border-bottom: 1px solid var(--line); vertical-align: middle;
     }
-    th { background: #f4f6fc; white-space: nowrap; }
-    td select { min-width: 100px; }
-    .grade-pill {
-      display: inline-block;
-      min-width: 52px;
-      text-align: center;
-      padding: 6px 10px;
-      border-radius: 10px;
-      background: #eae8ff;
-      color: #3730a3;
-      font-weight: bold;
+
+    th {
+      color: #525f79; font-weight: 700; background: #f6f7fc;
+      position: sticky; top: 0; z-index: 1;
     }
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin: 18px 0;
+
+    td select { min-width: 105px; }
+    .grade {
+      display: inline-grid; place-items: center;
+      min-width: 46px; padding: 4px 10px;
+      border-radius: 10px; color: #5141b4; background: #eee9ff; font-weight: 800;
     }
-    .toolbar > label { flex: 1; min-width: 170px; }
-    .status {
-      border-radius: 12px;
-      padding: 12px 16px;
-      background: #eef2ff;
-      color: #303c75;
-    }
-    #notice {
-      position: sticky;
-      top: 10px;
-      z-index: 10;
-      white-space: pre-wrap;
-      background: #e7f8f1;
-      color: #075c3e;
-      border: 1px solid #9ed9bd;
-      padding: 14px 18px;
-      border-radius: 14px;
-      margin-bottom: 16px;
-    }
-    #notice.error { background: #fff0f3; color: #95162f; border-color: #efb2bf; }
-    #loading {
-      position: fixed;
-      inset: 0;
-      background: #f5f7fccf;
-      z-index: 100;
-      display: grid;
-      place-items: center;
-      backdrop-filter: blur(3px);
-    }
-    .loader-box {
-      text-align: center;
-      background: white;
-      border-radius: 20px;
-      padding: 28px 38px;
-      box-shadow: 0 15px 50px #20345b22;
-    }
-    .spinner {
-      width: 34px;
-      height: 34px;
-      border: 4px solid #e4e4fa;
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      margin: 0 auto 14px;
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    dialog {
-      border: 0;
-      border-radius: 22px;
-      width: min(600px, 92vw);
-      padding: 28px;
-      color: var(--ink);
-    }
-    dialog::backdrop { background: #17233d88; }
-    #secretValue {
-      display: block;
-      padding: 15px;
-      background: #f0f2fa;
-      border-radius: 12px;
+
+    .notice { background: #fff5d9; color: #765512; padding: 16px; border-radius: 14px; }
+    .success { background: #e1f7ed; color: #116545; }
+    .credential {
+      background: #e5f7f2; border: 1px solid #a6ded0;
+      padding: 18px; border-radius: 14px; margin-top: 16px;
       overflow-wrap: anywhere;
-      user-select: all;
-      margin: 14px 0;
     }
-    footer { padding: 18px 0 30px; text-align: center; font-size: .85rem; }
-    .checklist {
-      max-height: 180px;
-      overflow-y: auto;
-      border: 1px solid var(--line);
-      padding: 12px;
-      border-radius: 12px;
+
+    details { margin-top: 14px; }
+    summary { font-weight: 750; padding: 10px 0; }
+    footer { text-align: center; color: var(--muted); padding: 28px 0; font-size: .85rem; }
+
+    #busy {
+      position: fixed; inset: 0; background: #f5f7ffb8;
+      backdrop-filter: blur(3px); z-index: 100;
+      display: grid; place-items: center;
     }
-    .checklist label { font-weight: normal; padding: 4px; }
-    @media (max-width: 760px) {
-      .login-grid, .grid2 { grid-template-columns: 1fr; }
-      .login-grid { gap: 12px; padding-top: 10px; }
-      .hero { padding: 24px; }
-      .hero-number { font-size: 2.8rem; }
-      .grid3 { grid-template-columns: 1fr; }
-      header { align-items: flex-start; }
-      header .badge { font-size: .72rem; }
-      .toolbar button { flex: 1; }
-      th, td { padding: 11px 8px; }
+
+    #busy > div {
+      padding: 25px 35px; background: white; border-radius: 20px;
+      box-shadow: var(--shadow); text-align: center;
     }
-    @media (prefers-reduced-motion: reduce) {
-      .spinner { animation: none; }
+
+    .spinner {
+      width: 34px; height: 34px; border: 4px solid #e8e2ff;
+      border-top-color: var(--primary); border-radius: 50%;
+      margin: 0 auto 10px; animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+    #message {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      width: min(600px, 92%); padding: 14px 18px;
+      border-radius: 14px; background: #202642; color: white;
+      box-shadow: var(--shadow); z-index: 110;
+    }
+
+    @media (max-width: 720px) {
+      .hero { grid-template-columns: 1fr; gap: 20px; padding-top: 12px; }
+      .card { padding: 20px; border-radius: 20px; }
+      header { align-items: flex-start; padding: 18px 0; }
+      .stats { gap: 8px; }
+      .stat { padding: 13px; font-size: .8rem; }
+      .stat strong { font-size: 1.4rem; }
+      th, td { padding: 11px 9px; }
+      .hide-mobile { display: none; }
     }
   </style>
-  <script src="./app.js" defer></script>
 </head>
+
 <body>
-  <div class="shell">
+  <div class="container">
     <header>
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">G</div>
+        <div class="logo" aria-hidden="true">G</div>
         <div>
           <strong id="schoolName">ระบบผลการเรียน</strong>
-          <div class="muted">เรียนรู้ เติบโต และติดตามความก้าวหน้า</div>
+          <span class="muted small">Student Grade Portal</span>
         </div>
       </div>
-      <span class="badge">เทอม 1 / 2569</span>
+      <div class="row">
+        <span class="pill">เทอม 1 / 2569</span>
+        <button id="logoutBtn" class="light" hidden>ออกจากระบบ</button>
+      </div>
     </header>
 
-    <div id="notice" role="status" aria-live="polite" hidden></div>
-
     <main>
-      <section id="loginView" class="login-grid">
-        <div class="hero">
-          <span class="badge">ผลการเรียนออนไลน์</span>
-          <div class="hero-number">1 / 2569</div>
-          <h1>ดูผลการเรียน<br>ง่าย ๆ ในที่เดียว</h1>
-          <p>ตรวจสอบเกรดทั้ง 15 รายวิชา และ GPA ประจำภาคเรียน
-            ผ่านมือถือหรือคอมพิวเตอร์</p>
-          <div class="row">
-            <span class="badge">ไม่ต้องเลือกปีหรือเทอม</span>
-            <span class="badge">แสดงผลที่ครูอนุมัติแล้ว</span>
+      <section id="home" class="hero">
+        <div>
+          <span class="pill">ผลการเรียนออนไลน์</span>
+          <h1>ทุกความตั้งใจ<br><span class="gradient">ดูผลได้ง่าย ๆ</span></h1>
+          <p class="muted">ตรวจสอบเกรดรายวิชาและ GPA<br>ภาคเรียนที่ 1 ปีการศึกษา 2569</p>
+          <div class="features">
+            <span class="feature">15 รายวิชา</span>
+            <span class="feature">รองรับมือถือ</span>
+            <span class="feature">ไม่ต้องเลือกปีหรือเทอม</span>
           </div>
         </div>
 
         <div class="card">
           <div class="tabs">
-            <button type="button" data-action="studentTab" id="studentTab">
-              นักเรียน
-            </button>
-            <button type="button" class="secondary"
-              data-action="staffTab" id="staffTab">ครู / ผู้ดูแล</button>
+            <button id="studentTab" class="active" type="button">นักเรียน</button>
+            <button id="staffTab" type="button">ครู / ผู้ดูแล</button>
           </div>
 
-          <form id="studentForm" class="stack">
-            <div>
-              <h2>ตรวจสอบผลการเรียน</h2>
-              <p class="muted">กรอกเลขบัตรประชาชนที่ลงทะเบียนกับโรงเรียน</p>
-            </div>
-            <label for="nationalId">เลขบัตรประชาชน
-              <input id="nationalId" name="national_id"
-                type="password" inputmode="numeric"
-                pattern="[0-9]{13}" minlength="13" maxlength="13"
-                autocomplete="off" required
-                placeholder="เลขบัตรประชาชน 13 หลัก">
-            </label>
-            <button type="submit">ดูผลการเรียน</button>
-            <small>ใช้เฉพาะข้อมูลของตนเอง หากเข้าไม่ได้กรุณาติดต่อครูประจำชั้น
-              และออกจากระบบทุกครั้งเมื่อใช้เครื่องร่วมกับผู้อื่น</small>
+          <form id="studentForm">
+            <h2>เข้าดูผลการเรียน</h2>
+            <p class="muted small">กรอกข้อมูลของตนเองเท่านั้น</p>
+            <label for="nationalId">เลขบัตรประชาชน</label>
+            <input id="nationalId" type="text" inputmode="numeric"
+              maxlength="13" minlength="13" pattern="[0-9]{13}"
+              autocomplete="off" placeholder="เลขบัตรประชาชน 13 หลัก" required>
+            <button class="full" type="submit">ดูผลการเรียน</button>
+            <p class="muted small">หากเข้าใช้งานไม่ได้ กรุณาติดต่อครูประจำชั้น</p>
           </form>
 
-          <form id="staffForm" class="stack" hidden>
+          <form id="staffForm" hidden>
             <h2>เข้าสู่ระบบบุคลากร</h2>
-            <label>ชื่อผู้ใช้
-              <input name="username" autocomplete="username" required>
-            </label>
-            <label>รหัสผ่าน
-              <input name="password" type="password"
-                autocomplete="current-password" required>
-            </label>
-            <button type="submit">เข้าสู่ระบบ</button>
-            <small>ใช้บัญชีและรหัสผ่านที่ผู้ดูแลระบบออกให้</small>
+            <label for="username">ชื่อผู้ใช้</label>
+            <input id="username" autocomplete="username" required>
+            <label for="password">รหัสผ่าน</label>
+            <input id="password" type="password" autocomplete="current-password" required>
+            <button class="full" type="submit">เข้าสู่ระบบ</button>
           </form>
         </div>
       </section>
 
-      <section id="workspace" hidden>
-        <div class="row between" style="margin:16px 0">
-          <div>
-            <strong id="userLabel"></strong>
-            <div class="muted">ภาคเรียนที่ 1 ปีการศึกษา 2569</div>
+      <section id="studentView" hidden></section>
+
+      <section id="staffView" hidden>
+        <div class="card">
+          <div class="row between">
+            <div>
+              <h2>บันทึกเกรดนักเรียน</h2>
+              <span id="staffLabel" class="muted"></span>
+            </div>
+            <span class="pill">ภาคเรียนที่ 1 ปีการศึกษา 2569</span>
           </div>
-          <button type="button" class="secondary"
-            data-action="logout">ออกจากระบบ</button>
+
+          <div class="row space">
+            <div class="grow">
+              <label for="roomSelect">ชั้น / ห้อง</label>
+              <select id="roomSelect"></select>
+            </div>
+            <div class="grow">
+              <label for="subjectSelect">รายวิชา</label>
+              <select id="subjectSelect"></select>
+            </div>
+            <button id="loadRoomBtn" class="secondary">โหลดข้อมูลห้อง</button>
+          </div>
         </div>
-        <div id="content"></div>
+
+        <div id="classPanel" hidden>
+          <div class="stats">
+            <div class="stat"><span>นักเรียน</span><strong id="studentCount">0</strong></div>
+            <div class="stat"><span>กรอกแล้ว / ทั้งหมด</span><strong id="gradeCount">0</strong></div>
+            <div class="stat"><span>สถานะ</span><strong id="classStatus">ร่าง</strong></div>
+          </div>
+
+          <div class="card">
+            <div class="row between">
+              <h3 id="subjectTitle"></h3>
+              <span id="dirtyLabel" class="muted small"></span>
+            </div>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr><th>รหัส</th><th>ชื่อ–นามสกุล</th><th>เกรด</th></tr>
+                </thead>
+                <tbody id="gradeBody"></tbody>
+              </table>
+            </div>
+
+            <div class="actions">
+              <button id="saveBtn">บันทึกร่าง</button>
+              <button id="publishBtn" class="teal">อนุมัติผลทั้งห้อง</button>
+              <button id="unpublishBtn" class="danger">ยกเลิกอนุมัติ</button>
+            </div>
+
+            <div class="actions">
+              <button id="gradeTemplateBtn" class="secondary">ดาวน์โหลดแม่แบบเกรด Excel</button>
+              <button id="gradeImportBtn" class="light">นำเข้าเกรด Excel</button>
+            </div>
+
+            <p class="muted small">
+              นำเข้าเกรดแล้วต้องกดบันทึกร่างก่อนอนุมัติ ช่องว่างไม่ใช่เกรด 0
+            </p>
+          </div>
+        </div>
+
+        <section id="adminPanel" hidden>
+          <div class="card">
+            <h2>พื้นที่ผู้ดูแลระบบ</h2>
+
+            <details open>
+              <summary>นำเข้าข้อมูลนักเรียน</summary>
+              <p class="muted small">
+                ครั้งละไม่เกิน 100 คน รหัสนักเรียนเดิมจะเป็นการปรับปรุงข้อมูล
+                โดยไม่อนุญาตให้ย้ายห้องของผู้ที่มีเกรดแล้ว
+              </p>
+              <div class="actions">
+                <button id="studentTemplateBtn" class="secondary">ดาวน์โหลดแม่แบบนักเรียน</button>
+                <button id="studentImportBtn" class="teal">นำเข้านักเรียน Excel</button>
+              </div>
+            </details>
+
+            <details>
+              <summary>จัดการบัญชีครูและผู้ดูแล</summary>
+              <form id="accountForm">
+                <div class="row">
+                  <div class="grow">
+                    <label for="newUsername">ชื่อผู้ใช้ใหม่</label>
+                    <input id="newUsername" placeholder="teacher01" required>
+                  </div>
+                  <div class="grow">
+                    <label for="newRole">บทบาท</label>
+                    <select id="newRole">
+                      <option value="teacher">ครู</option>
+                      <option value="admin">ผู้ดูแลระบบ</option>
+                    </select>
+                  </div>
+                  <div class="grow">
+                    <label for="newRooms">ห้องที่รับผิดชอบ</label>
+                    <input id="newRooms" placeholder="ป.1/1,ป.1/2">
+                  </div>
+                </div>
+                <button type="submit">สร้างบัญชีและรหัสผ่าน</button>
+              </form>
+
+              <div id="credentials" class="credential" hidden></div>
+
+              <div class="actions">
+                <button id="accountsBtn" class="light">โหลดรายการบัญชี</button>
+              </div>
+              <div class="scroll space">
+                <table>
+                  <thead>
+                    <tr><th>ชื่อผู้ใช้</th><th>บทบาท / ห้อง</th><th>จัดการ</th></tr>
+                  </thead>
+                  <tbody id="accountBody"></tbody>
+                </table>
+              </div>
+            </details>
+
+            <details>
+              <summary>ชื่อโรงเรียนและน้ำหนัก GPA</summary>
+              <form id="settingsForm">
+                <label for="schoolInput">ชื่อโรงเรียน</label>
+                <input id="schoolInput" required>
+                <p class="notice small">
+                  ค่าเริ่มต้นทุกวิชาน้ำหนัก 1 และนับ GPA
+                  กรุณาปรับให้ตรงกับเกณฑ์โรงเรียนก่อนประกาศผล
+                </p>
+                <div class="scroll">
+                  <table>
+                    <thead><tr><th>วิชา</th><th>น้ำหนัก</th><th>คิด GPA</th></tr></thead>
+                    <tbody id="settingsBody"></tbody>
+                  </table>
+                </div>
+                <button type="submit">บันทึกการตั้งค่า</button>
+              </form>
+            </details>
+          </div>
+        </section>
       </section>
     </main>
 
-    <footer class="muted">
-      ข้อมูลผลการเรียนสำหรับนักเรียนและบุคลากรที่ได้รับอนุญาตเท่านั้น
+    <footer>
+      ภาคเรียนที่ 1 ปีการศึกษา 2569 · กรุณาออกจากระบบหลังใช้งาน
     </footer>
   </div>
 
-  <div id="loading" hidden role="status" aria-live="polite">
-    <div class="loader-box">
-      <div class="spinner" aria-hidden="true"></div>
-      กำลังดำเนินการ กรุณารอสักครู่
-    </div>
-  </div>
+  <input id="studentFile" type="file" accept=".xlsx" hidden>
+  <input id="gradeFile" type="file" accept=".xlsx" hidden>
 
-  <dialog id="secretDialog">
-    <h2>รหัสผ่านที่ระบบออกให้</h2>
-    <p id="secretUser"></p>
-    <code id="secretValue"></code>
-    <p class="muted">คัดลอกและส่งให้เจ้าของบัญชีผ่านช่องทางส่วนตัว
-      ระบบไม่สามารถเปิดดูรหัสเดิมภายหลังได้</p>
-    <div class="row">
-      <button type="button" data-action="copySecret">คัดลอกรหัสผ่าน</button>
-      <button type="button" class="secondary"
-        data-action="closeSecret">ปิด</button>
-    </div>
-  </dialog>
+  <div id="busy" role="status" aria-live="polite" hidden>
+    <div><div class="spinner" aria-hidden="true"></div>กำลังดำเนินการ…</div>
+  </div>
+  <div id="message" role="alert" hidden></div>
+
+  <!-- ดาวน์โหลดไลบรารีมาเก็บใน repository ตามขั้นตอนติดตั้ง -->
+  <script src="./vendor/xlsx.full.min.js"></script>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxqgBU30cd3OMeEkqKKAUREtpDVB15j7BKpMWGU94MvtxE64a8STgCuIro3W9uGcWkO/exec';
+
+    const $ = id => document.getElementById(id);
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;',
+      '"': '&quot;', "'": '&#39;'
+    }[c]));
+
+    let token = '';
+    let role = '';
+    let meta = null;
+    let currentClass = null;
+    let dirty = false;
+    let busy = false;
+    let sessionTimer;
+    let messageTimer;
+    let accountRows = [];
+
+    function notify(message) {
+      $('message').textContent = message;
+      $('message').hidden = false;
+      clearTimeout(messageTimer);
+      messageTimer = setTimeout(() => $('message').hidden = true, 9000);
+    }
+
+    async function run(fn) {
+      if (busy) return;
+      busy = true;
+      $('busy').hidden = false;
+      try {
+        await fn();
+      } catch (err) {
+        notify(err.message || 'ดำเนินการไม่สำเร็จ');
+      } finally {
+        busy = false;
+        $('busy').hidden = true;
+      }
+    }
+
+    async function api(action, data = {}, useToken = token) {
+      if (!API_URL.startsWith('https://script.google.com/')) {
+        throw new Error('ผู้ดูแลต้องใส่ API_URL ใน index.html ก่อน');
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 45000);
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          credentials: 'omit',
+          redirect: 'follow',
+          body: JSON.stringify({ action, token: useToken, ...data }),
+          signal: controller.signal
+        });
+
+        const raw = await response.text();
+        let result;
+
+        try {
+          result = JSON.parse(raw);
+        } catch (_) {
+          throw new Error('API ไม่ได้ส่ง JSON กรุณาตรวจการเผยแพร่ Apps Script');
+        }
+
+        if (!result.ok) {
+          if (result.code === 'AUTH') clearSession();
+          throw new Error(result.message || 'ดำเนินการไม่สำเร็จ');
+        }
+
+        return result.data;
+
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          throw new Error(
+            'รอนานเกินกำหนด คำสั่งอาจบันทึกแล้ว กรุณาโหลดข้อมูลใหม่ก่อนทำซ้ำ'
+          );
+        }
+        if (err instanceof TypeError) {
+          throw new Error('เชื่อมต่อไม่ได้ กรุณาตรวจอินเทอร์เน็ตและการเผยแพร่ API');
+        }
+        throw err;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    function applyMeta(data) {
+      meta = data;
+      $('schoolName').textContent = meta.school;
+      document.title = meta.school + ' | ผลการเรียน 1/2569';
+
+      $('subjectSelect').innerHTML = meta.subjects.map((s, i) =>
+        `<option value="${i}">${esc(s.name)}</option>`
+      ).join('');
+
+      $('schoolInput').value = meta.school;
+      $('settingsBody').innerHTML = meta.subjects.map((s, i) => `
+        <tr>
+          <td>${esc(s.name)}</td>
+          <td>
+            <input type="number" min="0" max="100" step="0.01"
+              data-weight="${i}" value="${s.weight}"
+              aria-label="น้ำหนัก ${esc(s.name)}">
+          </td>
+          <td>
+            <input type="checkbox" data-include="${i}"
+              ${s.include ? 'checked' : ''}
+              aria-label="นำ ${esc(s.name)} มาคิด GPA">
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function enterSession(data) {
+      token = data.token;
+      role = data.role;
+      $('home').hidden = true;
+      $('logoutBtn').hidden = false;
+      clearTimeout(sessionTimer);
+      sessionTimer = setTimeout(() => {
+        logout(false);
+        notify('ครบเวลาใช้งาน กรุณาเข้าสู่ระบบใหม่');
+      }, 600000);
+    }
+
+    function clearSession() {
+      clearTimeout(sessionTimer);
+      token = '';
+      role = '';
+      dirty = false;
+      currentClass = null;
+      accountRows = [];
+
+      $('home').hidden = false;
+      $('studentView').hidden = true;
+      $('staffView').hidden = true;
+      $('adminPanel').hidden = true;
+      $('classPanel').hidden = true;
+      $('logoutBtn').hidden = true;
+      $('credentials').hidden = true;
+
+      $('studentView').innerHTML = '';
+      $('gradeBody').innerHTML = '';
+      $('accountBody').innerHTML = '';
+      $('credentials').textContent = '';
+
+      $('nationalId').value = '';
+      $('password').value = '';
+      $('studentFile').value = '';
+      $('gradeFile').value = '';
+    }
+
+    function logout(ask = true) {
+      if (ask && dirty && !confirm('มีเกรดที่ยังไม่บันทึก ต้องการออกจากระบบหรือไม่?')) {
+        return;
+      }
+      const old = token;
+      clearSession();
+      if (old) api('logout', {}, old).catch(() => {});
+    }
+
+    function setTab(staff) {
+      $('studentForm').hidden = staff;
+      $('staffForm').hidden = !staff;
+      $('studentTab').classList.toggle('active', !staff);
+      $('staffTab').classList.toggle('active', staff);
+    }
+
+    function renderStudent(result) {
+      $('studentView').hidden = false;
+
+      const gradeContent = result.published ? `
+        <div class="stats">
+          <div class="stat"><span>รายวิชา</span><strong>${result.grades.length}</strong></div>
+          <div class="stat"><span>GPA</span><strong>${
+            result.gpa === null ? '—' : Number(result.gpa).toFixed(2)
+          }</strong></div>
+          <div class="stat"><span>สถานะ</span><strong>ประกาศแล้ว</strong></div>
+        </div>
+        ${result.gpa === null ? `
+          <p class="notice">
+            ยังไม่แสดง GPA: มีผลที่ไม่เป็นเกรดตัวเลข
+            หรือไม่มีรายวิชาที่นำมาคำนวณ
+          </p>` : ''}
+        <div class="scroll">
+          <table>
+            <thead><tr><th>รายวิชา</th><th>เกรด</th></tr></thead>
+            <tbody>
+              ${result.grades.map(g => `
+                <tr>
+                  <td>${esc(g.subject)}</td>
+                  <td><span class="grade">${esc(g.grade)}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : `
+        <div class="notice">
+          ยังไม่ประกาศผลการเรียน หรืออยู่ระหว่างปรับปรุงผลการเรียน
+          ภาคเรียนที่ 1 ปีการศึกษา 2569
+        </div>
+      `;
+
+      $('studentView').innerHTML = `
+        <div class="card">
+          <span class="pill">ภาคเรียนที่ 1 ปีการศึกษา 2569</span>
+          <h2 class="space">${esc(result.full_name)}</h2>
+          <p class="muted">
+            รหัสนักเรียน ${esc(result.student_code)}
+            · ชั้น/ห้อง ${esc(result.room)}
+          </p>
+        </div>
+        <div class="card">${gradeContent}</div>
+      `;
+    }
+
+    async function loadStaff() {
+      const info = await api('staffInfo');
+      applyMeta(info.meta);
+
+      $('staffView').hidden = false;
+      $('adminPanel').hidden = info.role !== 'admin';
+      $('staffLabel').textContent =
+        info.username + ' · ' + (info.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ครู');
+
+      $('roomSelect').innerHTML = info.rooms.length
+        ? info.rooms.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')
+        : '<option value="">ยังไม่มีห้องที่ใช้งานได้</option>';
+
+      $('loadRoomBtn').disabled = !info.rooms.length;
+      currentClass = null;
+      dirty = false;
+      $('classPanel').hidden = true;
+    }
+
+    function canLeaveClass() {
+      return !dirty || confirm('มีเกรดที่ยังไม่บันทึก ต้องการละทิ้งการแก้ไขหรือไม่?');
+    }
+
+    function renderClass() {
+      const c = currentClass;
+      if (!c) return;
+
+      $('classPanel').hidden = false;
+
+      const index = Number($('subjectSelect').value || 0);
+      const subject = meta.subjects[index];
+      const filled = c.students.reduce(
+        (sum, s) => sum + s.values.filter(v => v !== '').length, 0
+      );
+
+      $('studentCount').textContent = c.students.length;
+      $('gradeCount').textContent = `${filled}/${c.students.length * meta.subjects.length}`;
+      $('classStatus').textContent = c.published ? 'อนุมัติแล้ว' : c.locked ? 'ล็อกแล้ว' : 'ร่าง';
+      $('subjectTitle').textContent = c.room + ' · ' + subject.name;
+      $('dirtyLabel').textContent = dirty ? 'มีการแก้ไขที่ยังไม่บันทึก' : 'ข้อมูลที่โหลดล่าสุด';
+
+      $('gradeBody').innerHTML = c.students.map((s, rowIndex) => `
+        <tr>
+          <td>${esc(s.student_code)}</td>
+          <td>${esc(s.full_name)}</td>
+          <td>
+            <select data-row="${rowIndex}" ${c.locked ? 'disabled' : ''}
+              aria-label="เกรด ${esc(s.full_name)}">
+              ${meta.gradeOptions.map(g => `
+                <option value="${esc(g)}" ${s.values[index] === g ? 'selected' : ''}>
+                  ${g === '' ? '— เลือก —' : esc(g)}
+                </option>
+              `).join('')}
+            </select>
+          </td>
+        </tr>
+      `).join('');
+
+      $('saveBtn').disabled = c.locked;
+      $('publishBtn').disabled = dirty || c.locked || !c.complete;
+      $('unpublishBtn').disabled = !c.locked;
+      $('gradeImportBtn').disabled = c.locked;
+    }
+
+    function updateCompleteness() {
+      currentClass.complete = currentClass.students.length > 0 &&
+        currentClass.students.every(s => s.values.every(v => v !== ''));
+    }
+
+    async function mutateClass(action, extra = {}) {
+      if (!currentClass) throw new Error('กรุณาโหลดข้อมูลห้องก่อน');
+
+      currentClass = await api(action, {
+        room: currentClass.room,
+        revision: currentClass.revision,
+        ...extra
+      });
+
+      dirty = false;
+      renderClass();
+    }
+
+    function requireExcel() {
+      if (!window.XLSX) {
+        throw new Error('ไม่พบไลบรารี Excel กรุณาตรวจไฟล์ vendor/xlsx.full.min.js');
+      }
+    }
+
+    function downloadWorkbook(sheetName, rows, filename) {
+      requireExcel();
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+
+      // เก็บช่องในแม่แบบเป็นข้อความ ป้องกันเลขศูนย์ด้านหน้าหาย
+      Object.keys(ws).filter(k => !k.startsWith('!')).forEach(k => {
+        ws[k].t = 's';
+        ws[k].v = String(ws[k].v ?? '');
+        ws[k].z = '@';
+      });
+
+      ws['!cols'] = rows[0].map((_, i) => ({ wch: i === 2 ? 28 : 20 }));
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      XLSX.writeFile(wb, filename, { compression: true });
+    }
+
+    async function readWorkbook(file, sheetName, requiredHeaders) {
+      requireExcel();
+      if (!file) throw new Error('กรุณาเลือกไฟล์');
+      if (!file.name.toLowerCase().endsWith('.xlsx')) {
+        throw new Error('รองรับเฉพาะไฟล์ .xlsx');
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        throw new Error('ไฟล์ต้องมีขนาดไม่เกิน 2 MB');
+      }
+
+      const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+      const ws = wb.Sheets[sheetName];
+      if (!ws) throw new Error('ไม่พบแผ่นงานชื่อ ' + sheetName);
+
+      for (const key of Object.keys(ws)) {
+        if (!key.startsWith('!') && ws[key].f) {
+          throw new Error('ไฟล์นำเข้าต้องเป็นค่า ไม่ใช่สูตร Excel');
+        }
+      }
+
+      const matrix = XLSX.utils.sheet_to_json(ws, {
+        header: 1, defval: '', raw: true, blankrows: false
+      });
+
+      if (!matrix.length) throw new Error('ไฟล์ไม่มีข้อมูล');
+      const headers = matrix[0].map(v => String(v).trim());
+
+      if (
+        headers.length !== requiredHeaders.length ||
+        headers.some((h, i) => h !== requiredHeaders[i])
+      ) {
+        throw new Error('หัวคอลัมน์ไม่ตรงกับแม่แบบ กรุณาดาวน์โหลดแม่แบบใหม่');
+      }
+
+      const rows = matrix.slice(1).filter(
+        row => row.some(v => String(v).trim() !== '')
+      );
+
+      if (!rows.length || rows.length > 100) {
+        throw new Error('นำเข้าได้ครั้งละ 1–100 แถว');
+      }
+
+      return rows.map(row =>
+        Object.fromEntries(headers.map((h, i) => [h, row[i] ?? '']))
+      );
+    }
+
+    async function loadAccounts() {
+      accountRows = await api('accountList');
+
+      $('accountBody').innerHTML = accountRows.map((a, i) => `
+        <tr>
+          <td>
+            ${esc(a.username)}<br>
+            <span class="muted small">${a.is_active === '1' ? 'ใช้งาน' : 'ระงับ'}</span>
+          </td>
+          <td>
+            ${a.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ครู'}<br>
+            <span class="small">${esc(a.assigned_rooms || 'ทุกห้อง')}</span>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="light" data-account="${i}" data-action="reset">รหัสใหม่</button>
+              <button class="danger" data-account="${i}" data-action="toggle">เปิด/ระงับ</button>
+              ${a.role === 'teacher'
+                ? `<button class="secondary" data-account="${i}" data-action="rooms">แก้ห้อง</button>`
+                : ''}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function showCredentials(data) {
+      const box = $('credentials');
+      box.hidden = false;
+      box.textContent =
+        'ชื่อผู้ใช้: ' + data.username +
+        '\nรหัสผ่าน: ' + data.password +
+        '\nกรุณาคัดลอกและส่งผ่านช่องทางส่วนตัว รหัสนี้ไม่สามารถเรียกดูซ้ำได้';
+      box.style.whiteSpace = 'pre-wrap';
+    }
+
+    /* ---------- Events ---------- */
+
+    $('studentTab').onclick = () => setTab(false);
+    $('staffTab').onclick = () => setTab(true);
+    $('logoutBtn').onclick = () => logout();
+
+    $('studentForm').onsubmit = event => {
+      event.preventDefault();
+
+      const national_id = $('nationalId').value.trim();
+      $('nationalId').value = '';
+
+      run(async () => {
+        const data = await api('studentLogin', { national_id });
+        enterSession(data);
+        renderStudent(data.result);
+      });
+    };
+
+    $('staffForm').onsubmit = event => {
+      event.preventDefault();
+
+      const username = $('username').value.trim();
+      const password = $('password').value;
+      $('password').value = '';
+
+      run(async () => {
+        const data = await api('staffLogin', { username, password });
+        enterSession(data);
+        try {
+          await loadStaff();
+        } catch (err) {
+          logout(false);
+          throw err;
+        }
+      });
+    };
+
+    $('loadRoomBtn').onclick = () => {
+      if (!canLeaveClass()) return;
+
+      run(async () => {
+        const room = $('roomSelect').value;
+        if (!room) throw new Error('ยังไม่มีห้องให้เลือก');
+
+        currentClass = await api('classGet', { room });
+        dirty = false;
+        renderClass();
+      });
+    };
+
+    $('subjectSelect').onchange = renderClass;
+
+    $('gradeBody').onchange = event => {
+      const select = event.target.closest('select[data-row]');
+      if (!select || !currentClass || currentClass.locked) return;
+
+      const row = Number(select.dataset.row);
+      const column = Number($('subjectSelect').value);
+      currentClass.students[row].values[column] = select.value;
+      dirty = true;
+      updateCompleteness();
+
+      const filled = currentClass.students.reduce(
+        (sum, s) => sum + s.values.filter(v => v !== '').length, 0
+      );
+
+      $('gradeCount').textContent =
+        `${filled}/${currentClass.students.length * meta.subjects.length}`;
+      $('dirtyLabel').textContent = 'มีการแก้ไขที่ยังไม่บันทึก';
+      $('publishBtn').disabled = true;
+    };
+
+    $('saveBtn').onclick = () => run(async () => {
+      await mutateClass('classSave', {
+        rows: currentClass.students.map(s => ({ id: s.id, values: s.values }))
+      });
+      notify('บันทึกเกรดฉบับร่างแล้ว');
+    });
+
+    $('publishBtn').onclick = () => {
+      if (!currentClass || dirty) return;
+      if (!confirm('ประกาศผลทั้งห้อง ' + currentClass.room + ' ให้นักเรียนเห็นหรือไม่?')) return;
+
+      run(async () => {
+        await mutateClass('classPublish');
+        notify('อนุมัติและประกาศผลแล้ว');
+      });
+    };
+
+    $('unpublishBtn').onclick = () => {
+      if (!currentClass) return;
+      const reason = prompt('ระบุเหตุผลที่ยกเลิกอนุมัติ');
+      if (!reason || !reason.trim()) return;
+
+      run(async () => {
+        await mutateClass('classUnpublish', { reason: reason.trim() });
+        notify('ยกเลิกอนุมัติแล้ว สามารถแก้ไขเกรดได้');
+      });
+    };
+
+    $('studentTemplateBtn').onclick = () => run(async () => {
+      downloadWorkbook('students', [
+        ['student_code', 'national_id', 'full_name', 'class_level', 'room'],
+        ['S0001', '', 'นักเรียนตัวอย่าง (ข้อมูลสมมติ)', 'ป.1', '1']
+      ], 'student-template-2569.xlsx');
+
+      notify('กรอกเลขบัตร 13 หลักเป็นข้อความ และแทนข้อมูลตัวอย่างก่อนนำเข้า');
+    });
+
+    $('gradeTemplateBtn').onclick = () => run(async () => {
+      if (!currentClass) throw new Error('กรุณาโหลดห้องก่อน');
+
+      downloadWorkbook('grades', [
+        ['student_code', ...meta.subjects.map(s => s.name)],
+        ...currentClass.students.map(s => [
+          s.student_code, ...meta.subjects.map(() => '')
+        ])
+      ], 'grade-template-1-2569.xlsx');
+    });
+
+    $('studentImportBtn').onclick = () => $('studentFile').click();
+    $('gradeImportBtn').onclick = () => $('gradeFile').click();
+
+    $('studentFile').onchange = event => {
+      const file = event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+
+      run(async () => {
+        if (dirty) throw new Error('กรุณาบันทึกเกรดที่แก้ไขอยู่ก่อนนำเข้านักเรียน');
+
+        const rows = await readWorkbook(file, 'students', [
+          'student_code', 'national_id', 'full_name', 'class_level', 'room'
+        ]);
+
+        rows.forEach((r, i) => {
+          if (typeof r.national_id !== 'string' ||
+              !/^\d{13}$/.test(r.national_id.trim())) {
+            throw new Error(
+              `แถว ${i + 2}: ตั้งเลขบัตรเป็นข้อความ แล้วกรอกให้ครบ 13 หลัก`
+            );
+          }
+        });
+
+        if (!confirm(
+          `นำเข้านักเรียน ${rows.length} รายการหรือไม่?\n` +
+          'รหัสนักเรียนเดิมจะถูกปรับปรุงข้อมูล'
+        )) return;
+
+        const result = await api('studentsImport', { rows });
+        await loadStaff();
+        notify('นำเข้านักเรียนสำเร็จ ' + result.count + ' รายการ');
+      });
+    };
+
+    $('gradeFile').onchange = event => {
+      const file = event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+
+      run(async () => {
+        if (!currentClass || currentClass.locked) {
+          throw new Error('กรุณาโหลดห้องที่ยังไม่อนุมัติก่อน');
+        }
+
+        const rows = await readWorkbook(file, 'grades', [
+          'student_code', ...meta.subjects.map(s => s.name)
+        ]);
+
+        const next = JSON.parse(JSON.stringify(currentClass));
+        const studentMap = new Map(next.students.map(s => [s.student_code, s]));
+        const seen = new Set();
+
+        rows.forEach(r => {
+          const code = String(r.student_code).trim();
+          if (seen.has(code)) throw new Error('รหัสนักเรียนซ้ำในไฟล์: ' + code);
+          seen.add(code);
+
+          const student = studentMap.get(code);
+          if (!student) throw new Error('รหัสนักเรียนไม่อยู่ในห้องนี้: ' + code);
+
+          const values = meta.subjects.map(s => String(r[s.name]).trim());
+          if (values.some(v => !meta.gradeOptions.includes(v))) {
+            throw new Error('มีเกรดไม่ถูกต้องของนักเรียนรหัส ' + code);
+          }
+
+          student.values = values;
+        });
+
+        if (!confirm(
+          `นำเข้าเกรด ${rows.length} คนในห้อง ${currentClass.room} หรือไม่?\n` +
+          'แทนค่าทุกวิชาของคนที่มีในไฟล์ รวมถึงช่องว่าง แต่ยังไม่บันทึกลงฐานข้อมูล'
+        )) return;
+
+        currentClass = next;
+        dirty = true;
+        updateCompleteness();
+        renderClass();
+        notify('ตรวจและนำเข้าหน้าจอแล้ว กรุณากดบันทึกร่าง');
+      });
+    };
+
+    $('accountsBtn').onclick = () => run(loadAccounts);
+
+    $('accountForm').onsubmit = event => {
+      event.preventDefault();
+
+      run(async () => {
+        const result = await api('accountCreate', {
+          username: $('newUsername').value,
+          role: $('newRole').value,
+          rooms: $('newRooms').value
+        });
+
+        showCredentials(result);
+        $('accountForm').reset();
+        await loadAccounts();
+      });
+    };
+
+    $('accountBody').onclick = event => {
+      const button = event.target.closest('button[data-account]');
+      if (!button) return;
+
+      const account = accountRows[Number(button.dataset.account)];
+      const action = button.dataset.action;
+
+      if (action === 'reset') {
+        if (!confirm('สร้างรหัสผ่านใหม่ให้ ' + account.username + ' หรือไม่?')) return;
+
+        run(async () => {
+          const data = await api('accountReset', { id: account.id });
+          showCredentials(data);
+          notify('รหัสเดิมและเซสชันเดิมของบัญชีนี้จะใช้งานไม่ได้');
+        });
+      }
+
+      if (action === 'toggle') {
+        if (!confirm('เปลี่ยนสถานะบัญชี ' + account.username + ' หรือไม่?')) return;
+
+        run(async () => {
+          await api('accountToggle', { id: account.id });
+          await loadAccounts();
+        });
+      }
+
+      if (action === 'rooms') {
+        const rooms = prompt('ห้องที่รับผิดชอบ เช่น ป.1/1,ป.1/2', account.assigned_rooms);
+        if (!rooms) return;
+
+        run(async () => {
+          await api('accountRooms', { id: account.id, rooms });
+          await loadAccounts();
+        });
+      }
+    };
+
+    $('settingsForm').onsubmit = event => {
+      event.preventDefault();
+
+      run(async () => {
+        if (dirty) throw new Error('กรุณาบันทึกเกรดที่แก้ไขอยู่ก่อน');
+
+        const subjects = meta.subjects.map((s, i) => ({
+          id: s.id,
+          weight: Number(document.querySelector(`[data-weight="${i}"]`).value),
+          include: document.querySelector(`[data-include="${i}"]`).checked
+        }));
+
+        const result = await api('settingsSave', {
+          school: $('schoolInput').value,
+          subjects
+        });
+
+        applyMeta(result);
+        currentClass = null;
+        $('classPanel').hidden = true;
+        notify('บันทึกการตั้งค่าแล้ว กรุณาโหลดห้องใหม่ก่อนทำงานต่อ');
+      });
+    };
+
+    window.addEventListener('beforeunload', event => {
+      if (dirty) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    });
+
+    window.addEventListener('pageshow', event => {
+      if (event.persisted) logout(false);
+    });
+
+    run(async () => applyMeta(await api('meta')));
+  </script>
 </body>
 </html>
