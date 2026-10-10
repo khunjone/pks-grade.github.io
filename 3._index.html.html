@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>ระบบผลการเรียน | 1/2569</title>
+  <style>
+    :root {
+      --primary: #4338ca;
+      --primary-dark: #312e81;
+      --ink: #17233d;
+      --muted: #526078;
+      --line: #dce3f0;
+      --danger: #a51d39;
+      --success: #096344;
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Tahoma, system-ui, sans-serif;
+      line-height: 1.6;
+      background:
+        radial-gradient(circle at 8% 0%, #dfd7ff, transparent 38%),
+        radial-gradient(circle at 96% 20%, #c8f2ff, transparent 38%),
+        #f5f7fc;
+      min-height: 100vh;
+    }
+    button, input, select { font: inherit; }
+    button, .button {
+      min-height: 46px;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+    }
+    button:hover { filter: brightness(.95); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    button.secondary {
+      background: #e9e8ff;
+      color: var(--primary-dark);
+    }
+    button.danger { background: #fff0f3; color: var(--danger); }
+    button.success { background: var(--success); color: white; }
+    button.ghost { background: transparent; color: var(--primary); }
+    :focus-visible { outline: 3px solid #e78c09; outline-offset: 3px; }
+    input:not([type="checkbox"]), select {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid #aebbd0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: white;
+      color: var(--ink);
+    }
+    input[type="checkbox"] {
+      width: 19px;
+      height: 19px;
+      accent-color: var(--primary);
+      vertical-align: middle;
+    }
+    label { display: block; font-weight: bold; }
+    label input, label select { margin-top: 6px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(1.4rem, 3vw, 2rem); }
+    h2 { font-size: 1.35rem; }
+    h3 { font-size: 1.05rem; }
+    small, .muted { color: var(--muted); }
+    .shell { width: min(1120px, 94%); margin: auto; }
+    header {
+      padding: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .brand { display: flex; gap: 12px; align-items: center; }
+    .brand-mark {
+      background: linear-gradient(135deg, #4338ca, #1679b2);
+      color: white;
+      width: 50px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+      border-radius: 16px;
+      flex-shrink: 0;
+    }
+    .badge {
+      display: inline-flex;
+      background: #fff0d8;
+      color: #754400;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: .86rem;
+      font-weight: bold;
+    }
+    .card {
+      background: white;
+      border: 1px solid rgba(220, 227, 240, .9);
+      border-radius: var(--radius);
+      padding: clamp(18px, 3vw, 28px);
+      box-shadow: 0 10px 35px #20345b09;
+      margin-bottom: 20px;
+    }
+    .login-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: center;
+      padding: 28px 0;
+    }
+    .hero {
+      border-radius: 28px;
+      padding: 38px;
+      color: white;
+      background: linear-gradient(135deg, #4338ca, #225cac, #0b7488);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero p { color: #eef4ff; }
+    .hero .badge {
+      background: #ffffff20;
+      color: white;
+      margin-bottom: 20px;
+    }
+    .hero-number {
+      font-size: 4rem;
+      font-weight: bold;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+    .tabs button { flex: 1; }
+    .stack { display: grid; gap: 16px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .between { justify-content: space-between; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .stat {
+      padding: 18px;
+      border-radius: 16px;
+      background: #f1f4ff;
+      border: 1px solid #e1e7ff;
+    }
+    .stat strong { display: block; font-size: 1.7rem; }
+    .stat.gpa { background: #e7f8f1; color: #075c3e; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+    th, td {
+      padding: 13px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+    th { background: #f4f6fc; white-space: nowrap; }
+    td select { min-width: 100px; }
+    .grade-pill {
+      display: inline-block;
+      min-width: 52px;
+      text-align: center;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: #eae8ff;
+      color: #3730a3;
+      font-weight: bold;
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 18px 0;
+    }
+    .toolbar > label { flex: 1; min-width: 170px; }
+    .status {
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: #eef2ff;
+      color: #303c75;
+    }
+    #notice {
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      white-space: pre-wrap;
+      background: #e7f8f1;
+      color: #075c3e;
+      border: 1px solid #9ed9bd;
+      padding: 14px 18px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+    }
+    #notice.error { background: #fff0f3; color: #95162f; border-color: #efb2bf; }
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: #f5f7fccf;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      backdrop-filter: blur(3px);
+    }
+    .loader-box {
+      text-align: center;
+      background: white;
+      border-radius: 20px;
+      padding: 28px 38px;
+      box-shadow: 0 15px 50px #20345b22;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 4px solid #e4e4fa;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      margin: 0 auto 14px;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    dialog {
+      border: 0;
+      border-radius: 22px;
+      width: min(600px, 92vw);
+      padding: 28px;
+      color: var(--ink);
+    }
+    dialog::backdrop { background: #17233d88; }
+    #secretValue {
+      display: block;
+      padding: 15px;
+      background: #f0f2fa;
+      border-radius: 12px;
+      overflow-wrap: anywhere;
+      user-select: all;
+      margin: 14px 0;
+    }
+    footer { padding: 18px 0 30px; text-align: center; font-size: .85rem; }
+    .checklist {
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid var(--line);
+      padding: 12px;
+      border-radius: 12px;
+    }
+    .checklist label { font-weight: normal; padding: 4px; }
+    @media (max-width: 760px) {
+      .login-grid, .grid2 { grid-template-columns: 1fr; }
+      .login-grid { gap: 12px; padding-top: 10px; }
+      .hero { padding: 24px; }
+      .hero-number { font-size: 2.8rem; }
+      .grid3 { grid-template-columns: 1fr; }
+      header { align-items: flex-start; }
+      header .badge { font-size: .72rem; }
+      .toolbar button { flex: 1; }
+      th, td { padding: 11px 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation: none; }
+    }
+  </style>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">G</div>
+        <div>
+          <strong id="schoolName">ระบบผลการเรียน</strong>
+          <div class="muted">เรียนรู้ เติบโต และติดตามความก้าวหน้า</div>
+        </div>
+      </div>
+      <span class="badge">เทอม 1 / 2569</span>
+    </header>
+
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+
+    <main>
+      <section id="loginView" class="login-grid">
+        <div class="hero">
+          <span class="badge">ผลการเรียนออนไลน์</span>
+          <div class="hero-number">1 / 2569</div>
+          <h1>ดูผลการเรียน<br>ง่าย ๆ ในที่เดียว</h1>
+          <p>ตรวจสอบเกรดทั้ง 15 รายวิชา และ GPA ประจำภาคเรียน
+            ผ่านมือถือหรือคอมพิวเตอร์</p>
+          <div class="row">
+            <span class="badge">ไม่ต้องเลือกปีหรือเทอม</span>
+            <span class="badge">แสดงผลที่ครูอนุมัติแล้ว</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="tabs">
+            <button type="button" data-action="studentTab" id="studentTab">
+              นักเรียน
+            </button>
+            <button type="button" class="secondary"
+              data-action="staffTab" id="staffTab">ครู / ผู้ดูแล</button>
+          </div>
+
+          <form id="studentForm" class="stack">
+            <div>
+              <h2>ตรวจสอบผลการเรียน</h2>
+              <p class="muted">กรอกเลขบัตรประชาชนที่ลงทะเบียนกับโรงเรียน</p>
+            </div>
+            <label for="nationalId">เลขบัตรประชาชน
+              <input id="nationalId" name="national_id"
+                type="password" inputmode="numeric"
+                pattern="[0-9]{13}" minlength="13" maxlength="13"
+                autocomplete="off" required
+                placeholder="เลขบัตรประชาชน 13 หลัก">
+            </label>
+            <button type="submit">ดูผลการเรียน</button>
+            <small>ใช้เฉพาะข้อมูลของตนเอง หากเข้าไม่ได้กรุณาติดต่อครูประจำชั้น
+              และออกจากระบบทุกครั้งเมื่อใช้เครื่องร่วมกับผู้อื่น</small>
+          </form>
+
+          <form id="staffForm" class="stack" hidden>
+            <h2>เข้าสู่ระบบบุคลากร</h2>
+            <label>ชื่อผู้ใช้
+              <input name="username" autocomplete="username" required>
+            </label>
+            <label>รหัสผ่าน
+              <input name="password" type="password"
+                autocomplete="current-password" required>
+            </label>
+            <button type="submit">เข้าสู่ระบบ</button>
+            <small>ใช้บัญชีและรหัสผ่านที่ผู้ดูแลระบบออกให้</small>
+          </form>
+        </div>
+      </section>
+
+      <section id="workspace" hidden>
+        <div class="row between" style="margin:16px 0">
+          <div>
+            <strong id="userLabel"></strong>
+            <div class="muted">ภาคเรียนที่ 1 ปีการศึกษา 2569</div>
+          </div>
+          <button type="button" class="secondary"
+            data-action="logout">ออกจากระบบ</button>
+        </div>
+        <div id="content"></div>
+      </section>
+    </main>
+
+    <footer class="muted">
+      ข้อมูลผลการเรียนสำหรับนักเรียนและบุคลากรที่ได้รับอนุญาตเท่านั้น
+    </footer>
+  </div>
+
+  <div id="loading" hidden role="status" aria-live="polite">
+    <div class="loader-box">
+      <div class="spinner" aria-hidden="true"></div>
+      กำลังดำเนินการ กรุณารอสักครู่
+    </div>
+  </div>
+
+  <dialog id="secretDialog">
+    <h2>รหัสผ่านที่ระบบออกให้</h2>
+    <p id="secretUser"></p>
+    <code id="secretValue"></code>
+    <p class="muted">คัดลอกและส่งให้เจ้าของบัญชีผ่านช่องทางส่วนตัว
+      ระบบไม่สามารถเปิดดูรหัสเดิมภายหลังได้</p>
+    <div class="row">
+      <button type="button" data-action="copySecret">คัดลอกรหัสผ่าน</button>
+      <button type="button" class="secondary"
+        data-action="closeSecret">ปิด</button>
+    </div>
+  </dialog>
+</body>
+</html>
