@@ -407,6 +407,21 @@
             </details>
           </div>
         </section>
+
+        <div class="card">
+          <details>
+            <summary>เปลี่ยนรหัสผ่านบัญชีของคุณ</summary>
+            <form id="changePasswordForm">
+              <label for="oldPassword">รหัสผ่านเดิม</label>
+              <input id="oldPassword" type="password" required>
+              <label for="newPassword">รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)</label>
+              <input id="newPassword" type="password" minlength="6" required>
+              <label for="confirmPassword">ยืนยันรหัสผ่านใหม่</label>
+              <input id="confirmPassword" type="password" minlength="6" required>
+              <button type="submit">บันทึกรหัสผ่านใหม่</button>
+            </form>
+          </details>
+        </div>
       </section>
     </main>
 
@@ -423,7 +438,6 @@
   </div>
   <div id="message" role="alert" hidden></div>
 
-  <!-- ดาวน์โหลดไลบรารีมาเก็บใน repository ตามขั้นตอนติดตั้ง -->
   <script src="./vendor/xlsx.full.min.js"></script>
 
   <script>
@@ -740,7 +754,6 @@
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(rows);
 
-      // เก็บช่องในแม่แบบเป็นข้อความ ป้องกันเลขศูนย์ด้านหน้าหาย
       Object.keys(ws).filter(k => !k.startsWith('!')).forEach(k => {
         ws[k].t = 's';
         ws[k].v = String(ws[k].v ?? '');
@@ -834,8 +847,6 @@
         '\nกรุณาคัดลอกและส่งผ่านช่องทางส่วนตัว รหัสนี้ไม่สามารถเรียกดูซ้ำได้';
       box.style.whiteSpace = 'pre-wrap';
     }
-
-    /* ---------- Events ---------- */
 
     $('studentTab').onclick = () => setTab(false);
     $('staffTab').onclick = () => setTab(true);
@@ -1114,6 +1125,25 @@
         currentClass = null;
         $('classPanel').hidden = true;
         notify('บันทึกการตั้งค่าแล้ว กรุณาโหลดห้องใหม่ก่อนทำงานต่อ');
+      });
+    };
+
+    $('changePasswordForm').onsubmit = event => {
+      event.preventDefault();
+      const oldPassword = $('oldPassword').value;
+      const newPassword = $('newPassword').value;
+      const confirmPassword = $('confirmPassword').value;
+
+      if (newPassword !== confirmPassword) {
+        notify('รหัสผ่านใหม่ไม่ตรงกัน');
+        return;
+      }
+
+      run(async () => {
+        await api('changePassword', { oldPassword, newPassword });
+        $('changePasswordForm').reset();
+        notify('เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+        setTimeout(() => logout(false), 2000);
       });
     };
 
