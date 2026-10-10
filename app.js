@@ -1,7 +1,7 @@
 "use strict";
 
 // วาง URL Web App ที่ลงท้าย /exec จาก Apps Script
-const API_URL = "วาง_URL_APPS_SCRIPT_ที่ลงท้าย_exec_ตรงนี้";
+const API_URL = "https://script.google.com/macros/library/d/1eySSEZjHI-mi2aJzIZkvjccxYS8UQsQxTFBDHzVhW4GaUhkWVPo2b1EF/1";
 
 const $ = selector => document.querySelector(selector);
 const E = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
