@@ -405,13 +405,13 @@ async function renderLogin(tab = 'student') {
       ${tab === 'student' ? `
         <h2 class="h-title" style="text-align:center; margin-bottom:16px; font-size:20px;">กรอกเลขบัตรประจำตัวประชาชน</h2>
         <input class="inp nid" id="nid" inputmode="numeric" autocomplete="off" maxlength="17" placeholder="0-0000-00000-00-0"></div>
-        <p class="hint" style="text-align:center;><br>*ใช้ยืนยันตัวตนเพื่อดูผลการเรียนของตัวเองเท่านั้น</p>
+        <p class="hint" style="text-align:center;>*ใช้ยืนยันตัวตนเพื่อดูผลการเรียนของตัวเองเท่านั้น</p>
         <p class="err" id="err" role="alert"></p>
         <button class="btn block" id="go" disabled>ดูผลการเรียน</button>
         <div style="text-align:center; margin-top:24px;">
           <button id="tT" style="background:transparent; border:none; color:var(--ink2); font-size:13px; text-decoration:underline; padding:8px;">สำหรับครู / ผู้ดูแลระบบ</button>
         </div>` : `
-        <h2 class="h-title" style=margin-bottom:16px; font-size:20px;">สำหรับครู</h2>
+        <h2 class="h-title" style="margin-bottom:16px; font-size:20px;">สำหรับครู</h2>
         <div class="fld"><label class="f" for="un">ชื่อผู้ใช้</label><input class="inp" id="un" autocomplete="username" autocapitalize="none"></div>
         <div class="fld"><label class="f" for="pw">รหัสผ่าน</label><input class="inp" id="pw" type="password" autocomplete="current-password"></div>
         <p class="err" id="err" role="alert"></p>
