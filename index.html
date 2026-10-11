@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --o:#FF6A00; --o-btn:#F55F00; --o-d:#C44600; --o-l:#FFF1E4; --o-m:#FFD6B0; --sun:#FFC21A;
+  --o:#1e70b8; --o-btn:#1e70b8; --o-d:#1e70b8; --o-l:#FFF1E4; --o-m:#b2dbff52; --sun:#FFC21A;
   --ink:#1B2133; --ink2:#5B6275; --line:#E6E8F0; --bg:#F5F6FA; --card:#fff;
   --ok:#0E8A45; --ok-bg:#E3F6EB; --warn:#9A5A00; --warn-bg:#FFF2D2; --bad:#D92D3A; --bad-bg:#FDE8EA;
   --f-head:"Prompt","Sarabun","Noto Sans Thai",system-ui,sans-serif;
@@ -488,7 +488,6 @@ async function printReport() {
       <tbody>${rp.rows.map(r => `<tr><td class="c">${++i}</td><td>${esc(r.name)}${r.count_gpa ? '' : ' *'}</td><td class="c">${num(r.credit)}</td><td class="c">${r.grade == null ? '-' : num(r.grade)}</td></tr>`).join('')}</tbody>
       <tfoot><tr><td colspan="2" style="text-align:right">รวมหน่วยกิตที่นับ GPA / เกรดเฉลี่ย (GPA)</td><td class="c">${num(rp.credits)}</td><td class="c">${gpaStr(rp.gpa)}</td></tr></tfoot></table>
     ${rp.rows.some(r => !r.count_gpa) ? '<div class="rp-note">* รายวิชาที่ไม่นำมาคำนวณเกรดเฉลี่ย</div>' : ''}
-    <div class="rp-sign"><div><div class="ln"></div>(${esc(rp.approved_by)})<br>ครูผู้อนุมัติผลการเรียน</div><div><div class="ln"></div>(${esc(sc.director_name || '..............................')})<br>ผู้อำนวยการโรงเรียน</div></div>
     <div class="rp-note" style="margin-top:18px">พิมพ์เมื่อ ${esc(when(new Date().toISOString()))}</div></div>`;
   const img = $('#print img');
   if (img && !img.complete) await new Promise(r => { img.onload = img.onerror = r; setTimeout(r, 1500); });
