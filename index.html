@@ -397,25 +397,38 @@ function staffShell(inner, tab, wide = false) {
 const spin = '<div class="empty muted">กำลังโหลด…</div>';
 
 /* ============================== เข้าสู่ระบบ ============================== */
+/* ============================== เข้าสู่ระบบ ============================== */
 async function renderLogin(tab = 'student') {
   hideKp(); document.body.classList.remove('kp-open');
   app.innerHTML = `
     <div class="hero">${logoHtml()}<h1>${esc(S.cfg.school_name)}</h1><p>ระบบผลการเรียนออนไลน์${S.cfg.term ? ' ปีการศึกษา ' + esc(S.cfg.term) : ''}</p></div>
     <div class="card login-card">
-      <div class="seg"><button id="tS" class="${tab === 'student' ? 'on' : ''}">นักเรียน</button><button id="tT" class="${tab === 'staff' ? 'on' : ''}">ครู / ผู้ดูแลระบบ</button></div>
       ${tab === 'student' ? `
+        <h2 class="h-title" style="text-align:center; margin-bottom:16px; font-size:20px;">เข้าสู่ระบบนักเรียน</h2>
         <div class="fld"><label class="f" for="nid">เลขบัตรประจำตัวประชาชน</label>
         <input class="inp nid" id="nid" inputmode="numeric" autocomplete="off" maxlength="17" placeholder="0-0000-00000-00-0"></div>
         <p class="hint">ใช้ยืนยันตัวตนเพื่อดูผลการเรียนของตัวเองเท่านั้น</p>
         <p class="err" id="err" role="alert"></p>
-        <button class="btn block" id="go" disabled>ดูผลการเรียน</button>` : `
+        <button class="btn block" id="go" disabled>ดูผลการเรียน</button>
+        <div style="text-align:center; margin-top:24px;">
+          <button id="tT" style="background:transparent; border:none; color:var(--ink2); font-size:13px; text-decoration:underline; padding:8px;">สำหรับครู / ผู้ดูแลระบบ</button>
+        </div>` : `
+        <h2 class="h-title" style="text-align:center; margin-bottom:16px; font-size:20px;">สำหรับครู / ผู้ดูแลระบบ</h2>
         <div class="fld"><label class="f" for="un">ชื่อผู้ใช้</label><input class="inp" id="un" autocomplete="username" autocapitalize="none"></div>
         <div class="fld"><label class="f" for="pw">รหัสผ่าน</label><input class="inp" id="pw" type="password" autocomplete="current-password"></div>
         <p class="err" id="err" role="alert"></p>
-        <button class="btn block" id="go">เข้าสู่ระบบ</button>`}
+        <button class="btn block" id="go">เข้าสู่ระบบ</button>
+        <div style="text-align:center; margin-top:24px;">
+          <button id="tS" style="background:transparent; border:none; color:var(--ink2); font-size:13px; text-decoration:underline; padding:8px;">กลับไปหน้านักเรียน</button>
+        </div>`}
     </div>`;
-  $('#tS').onclick = () => renderLogin('student'); $('#tT').onclick = () => renderLogin('staff');
+  
+  // ตรวจสอบและผูก Event ให้กับปุ่มสลับหน้า (ป้องกัน Error กรณีปุ่มไม่ได้แสดงผล)
+  const btnStudent = $('#tS'); if (btnStudent) btnStudent.onclick = () => renderLogin('student');
+  const btnTeacher = $('#tT'); if (btnTeacher) btnTeacher.onclick = () => renderLogin('staff');
+
   const err = $('#err'), go = $('#go');
+  
   if (tab === 'student') {
     const nid = $('#nid');
     nid.addEventListener('input', () => {
