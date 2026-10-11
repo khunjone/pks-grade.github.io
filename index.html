@@ -1,1182 +1,1006 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="referrer" content="no-referrer">
-  <title>ระบบผลการเรียน | 1/2569</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FF6A00">
+<meta name="robots" content="noindex">
+<title>ระบบผลการเรียนออนไลน์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --o:#FF6A00; --o-btn:#F55F00; --o-d:#C44600; --o-l:#FFF1E4; --o-m:#FFD6B0; --sun:#FFC21A;
+  --ink:#1B2133; --ink2:#5B6275; --line:#E6E8F0; --bg:#F5F6FA; --card:#fff;
+  --ok:#0E8A45; --ok-bg:#E3F6EB; --warn:#9A5A00; --warn-bg:#FFF2D2; --bad:#D92D3A; --bad-bg:#FDE8EA;
+  --f-head:"Prompt","Sarabun","Noto Sans Thai",system-ui,sans-serif;
+  --f-body:"Sarabun","Noto Sans Thai",system-ui,sans-serif;
+  --sb:env(safe-area-inset-bottom,0px); --st:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:var(--f-body);font-size:17px;line-height:1.5;color:var(--ink);background:var(--bg);-webkit-text-size-adjust:100%}
+h1,h2,h3{font-family:var(--f-head);margin:0;line-height:1.25}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--o);outline-offset:2px}
 
-  <style>
-    :root {
-      --bg: #f5f7ff;
-      --card: #ffffff;
-      --ink: #202642;
-      --muted: #626d86;
-      --primary: #6550dc;
-      --primary-dark: #4935b6;
-      --teal: #087f75;
-      --line: #e4e8f3;
-      --danger: #b42346;
-      --shadow: 0 14px 45px #3e427510;
-    }
+/* progress bar */
+#bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:100;background:transparent;overflow:hidden}
+#bar.on::after{content:"";position:absolute;inset:0;width:40%;background:var(--o);animation:bar 1s infinite ease-in-out}
+@keyframes bar{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
 
-    * { box-sizing: border-box; }
-    [hidden] { display: none !important; }
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:calc(10px + var(--st)) 16px 10px;display:flex;align-items:center;gap:12px}
+.top::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(4px + var(--st));background:var(--o)}
+.top{padding-top:calc(14px + var(--st))}
+.logo{width:42px;height:42px;border-radius:12px;background:var(--o);color:#fff;display:grid;place-items:center;font:700 20px var(--f-head);flex:none;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.brand{min-width:0;flex:1}
+.brand b{display:block;font:600 16px/1.2 var(--f-head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{color:var(--ink2);font-size:13px}
+.ic{width:44px;height:44px;border:0;background:transparent;border-radius:12px;display:grid;place-items:center;color:var(--ink2);flex:none}
+.ic:hover{background:var(--bg)}
+.ic svg{width:22px;height:22px}
 
-    body {
-      margin: 0;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 8% 0%, #dff9f4, transparent 35%),
-        radial-gradient(circle at 95% 12%, #eee0ff, transparent 35%),
-        var(--bg);
-      font: 16px/1.65 system-ui, -apple-system, "Noto Sans Thai", sans-serif;
-    }
+/* layout */
+.main{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+.main.wide{max-width:960px}
+.main.has-nav{padding-bottom:calc(96px + var(--sb))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.stack>*+*{margin-top:12px}
+.row{display:flex;align-items:center;gap:12px}
+.grow{flex:1;min-width:0}
+.muted{color:var(--ink2)}
+.sm{font-size:14px}
+.h-title{font-size:22px;font-weight:600;margin:4px 0 2px}
 
-    button, input, select { font: inherit; }
-    button, summary { cursor: pointer; }
-    button { touch-action: manipulation; }
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 20px;border:2px solid transparent;border-radius:14px;font:600 18px var(--f-head);background:var(--o-btn);color:#fff;transition:transform .06s,background .15s}
+.btn:active{transform:scale(.98)}
+.btn:hover{background:var(--o-d)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn.ghost{background:#fff;color:var(--o-d);border-color:var(--o-m)}
+.btn.ghost:hover{background:var(--o-l)}
+.btn.danger{background:var(--bad)}
+.btn.block{width:100%}
+.btn.sm{min-height:40px;font-size:15px;padding:0 14px;border-radius:12px}
+.btn svg{width:20px;height:20px}
 
-    button:focus-visible, input:focus-visible, select:focus-visible {
-      outline: 3px solid #f4b63e;
-      outline-offset: 3px;
-    }
+/* forms */
+label.f{display:block;font-weight:600;font-size:15px;margin:0 0 6px}
+.inp,.sel{width:100%;height:50px;border:1.5px solid var(--line);border-radius:14px;padding:0 14px;background:#fff;font-size:17px}
+.inp:focus,.sel:focus{outline:none;border-color:var(--o);box-shadow:0 0 0 4px var(--o-m)}
+.inp[disabled]{background:var(--bg);color:var(--ink2)}
+.fld+.fld{margin-top:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px;font-size:16px}
+.chk input{width:22px;height:22px;accent-color:var(--o)}
+.hint{font-size:13px;color:var(--ink2);margin-top:6px}
 
-    .container { width: min(1350px, 96%); margin: auto; }
-    header {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 16px; padding: 24px 0;
-    }
+/* login */
+.hero{background:var(--o);color:#fff;padding:calc(32px + var(--st)) 20px 84px;text-align:center}
+.hero .logo{width:76px;height:76px;border-radius:22px;margin:0 auto 14px;background:#fff;color:var(--o);font-size:34px;box-shadow:0 6px 0 rgba(0,0,0,.12)}
+.hero h1{font-size:26px}
+.hero p{margin:6px 0 0;opacity:.95}
+.login-card{max-width:440px;margin:-56px auto 24px;padding:18px;box-shadow:0 10px 30px rgba(27,33,51,.12)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:14px;padding:4px;margin-bottom:18px}
+.seg button{border:0;background:transparent;min-height:44px;border-radius:11px;font:600 16px var(--f-head);color:var(--ink2)}
+.seg button.on{background:#fff;color:var(--o-d);box-shadow:0 1px 4px rgba(27,33,51,.15)}
+.nid{font:600 24px var(--f-head);letter-spacing:.06em;text-align:center;height:60px}
+.err{color:var(--bad);font-weight:600;font-size:15px;min-height:22px;margin:10px 0 0}
 
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .logo {
-      width: 48px; height: 48px; border-radius: 16px;
-      background: linear-gradient(135deg, #6550dc, #238daf);
-      color: white; display: grid; place-items: center;
-      font-weight: 900; font-size: 23px;
-    }
+/* student */
+.me{background:var(--o);color:#fff;border-radius:22px;padding:18px}
+.me h2{font-size:22px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:99px;background:rgba(255,255,255,.22);font-size:14px;font-weight:600}
+.chip.sel{border:1.5px solid var(--o-m);background:#fff;color:var(--o-d);min-height:40px;font-size:15px;cursor:pointer}
+.chip.sel.on{background:var(--o-btn);border-color:var(--o-btn);color:#fff}
+.terms{display:flex;gap:8px;overflow-x:auto;padding:2px 0}
+.gpa{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.gpa .n{font:700 48px/1 var(--f-head);color:var(--o-d)}
+.sub{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.sub:first-child{border-top:0}
+.sub .nm{font-weight:600}
+.tile{flex:none;min-width:56px;height:48px;border-radius:14px;display:grid;place-items:center;font:700 22px var(--f-head);background:var(--warn-bg);color:var(--warn)}
+.tile.g{background:var(--ok-bg);color:var(--ok)}
+.tile.b{background:var(--bad-bg);color:var(--bad)}
+.tile.n{background:var(--bg);color:var(--ink2)}
 
-    .brand strong { display: block; line-height: 1.35; }
-    .muted { color: var(--muted); }
-    .small { font-size: .87rem; }
+/* level cards */
+.lv{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;transition:border-color .15s,transform .06s}
+.lv:hover{border-color:var(--o)}
+.lv:active{transform:scale(.99)}
+.lv h3{font-size:26px}
+.pill{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:99px;font-size:13px;font-weight:700;background:var(--warn-bg);color:var(--warn)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.meter{height:10px;border-radius:99px;background:var(--bg);overflow:hidden;margin:12px 0 6px}
+.meter i{display:block;height:100%;background:var(--o);border-radius:99px}
+.meter.full i{background:var(--ok)}
 
-    .pill {
-      display: inline-block; padding: 6px 13px;
-      border-radius: 100px; background: #eae5ff;
-      color: #4935ad; font-size: .85rem; font-weight: 700;
-    }
+/* list rows (admin) */
+.li{display:flex;align-items:center;gap:12px;padding:12px 4px;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.av{width:40px;height:40px;border-radius:50%;background:var(--o-l);color:var(--o-d);display:grid;place-items:center;font:600 15px var(--f-head);flex:none}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--bg);color:var(--ink2);margin-left:6px;vertical-align:1px}
+.tag.o{background:var(--o-l);color:var(--o-d)}
+.empty{text-align:center;padding:36px 16px;color:var(--ink2)}
+.empty b{display:block;color:var(--ink);font:600 19px var(--f-head);margin-bottom:6px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar .sel{flex:1;min-width:140px}
 
-    .card {
-      padding: 26px; background: var(--card); border: 1px solid var(--line);
-      border-radius: 24px; box-shadow: var(--shadow);
-      margin-bottom: 20px;
-    }
+/* bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(6px + var(--sb))}
+.nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:54px;border-radius:14px;color:var(--ink2);font:600 12px var(--f-head)}
+.nav button svg{width:24px;height:24px}
+.nav button.on{color:var(--o-d);background:var(--o-l)}
 
-    .hero {
-      display: grid; grid-template-columns: 1.1fr 1fr;
-      align-items: center; gap: 40px; padding: 40px 0;
-    }
+/* grade grid page */
+.gp{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.gtop{background:#fff;border-bottom:1px solid var(--line);padding:calc(8px + var(--st)) 8px 8px;display:flex;align-items:center;gap:6px;position:relative}
+.gtop::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(4px + var(--st));background:var(--o)}
+.gtop{padding-top:calc(12px + var(--st))}
+.gtop h2{font-size:20px}
+.gwrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#fff}
+body.kp-open .gwrap{padding-bottom:230px}
+table.grid{border-collapse:separate;border-spacing:0;min-width:100%}
+.grid th,.grid td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);background:#fff;padding:0;text-align:center}
+.grid thead th{position:sticky;top:0;z-index:3;background:var(--o-l);padding:8px 4px;min-width:76px;font:600 13px/1.25 var(--f-head);vertical-align:bottom}
+.grid thead th .sn{display:block;color:var(--ink)}
+.grid thead th .sc{display:block;color:var(--o-d);font-weight:500;font-size:12px;margin-top:2px}
+.grid .c-name{position:sticky;left:0;z-index:2;min-width:150px;max-width:170px;text-align:left;padding:0 8px;background:#fff}
+.grid thead .c-name{z-index:4;background:var(--o-l)}
+.grid .c-name .no{display:inline-block;width:22px;color:var(--ink2);font-size:13px}
+.grid .c-name .nm{font-size:15px;font-weight:600}
+.grid .c-gpa{position:sticky;right:0;z-index:2;min-width:64px;font:700 16px var(--f-head);color:var(--o-d);background:#FFF8F2}
+.grid thead .c-gpa{z-index:4;background:var(--o-l)}
+.grid tr:nth-child(even) td{background:#FCFCFE}
+.grid tr:nth-child(even) td.c-name{background:#FCFCFE}
+.gc{width:100%;min-width:76px;height:46px;border:0;background:transparent;text-align:center;font:600 19px var(--f-head);border-radius:0}
+.gc:focus{outline:none;background:var(--o-m);box-shadow:inset 0 0 0 3px var(--o)}
+.gc.v0{background:var(--bad-bg);color:var(--bad)}
+.gc.v0:focus{background:var(--o-m)}
+.gc.miss{background:var(--sun)}
+.gv{height:46px;font:600 19px var(--f-head)}
+.gv.v0{color:var(--bad);background:var(--bad-bg)!important}
+.gfoot{background:#fff;border-top:1px solid var(--line);padding:10px 12px calc(10px + var(--sb));display:flex;align-items:center;gap:10px}
+.gfoot .st{flex:1;min-width:0;font-size:14px;line-height:1.3}
+.gfoot .st b{display:block;font:600 15px var(--f-head)}
+.gfoot .st .s-ok{color:var(--ok)} .gfoot .st .s-err{color:var(--bad)} .gfoot .st .s-wait{color:var(--warn)}
+.banner{background:var(--ok-bg);color:var(--ok);font-weight:600;font-size:14px;padding:8px 14px}
+.shake{animation:shake .25s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
-    h1 { font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1.3; margin: 14px 0; }
-    h2 { font-size: 1.4rem; margin: 0 0 16px; }
-    h3 { margin: 0 0 12px; font-size: 1.1rem; }
-    p { margin: 10px 0; }
+/* keypad */
+#kp{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#fff;border-top:2px solid var(--o);padding:8px 10px calc(10px + var(--sb));box-shadow:0 -8px 24px rgba(27,33,51,.14)}
+#kp .kl{font-size:14px;font-weight:600;color:var(--ink2);padding:0 4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#kp .kg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#kp button{height:52px;border:1.5px solid var(--o-m);background:var(--o-l);border-radius:14px;font:700 22px var(--f-head);color:var(--ink)}
+#kp button:active{background:var(--o-m)}
+#kp .del{color:var(--bad);font-size:17px}
+#kp .next{grid-column:span 2;background:var(--o-btn);border-color:var(--o-btn);color:#fff;font-size:18px}
+#kp .done{font-size:17px;background:#fff}
 
-    .gradient {
-      background: linear-gradient(100deg, #6550dc, #087f75);
-      background-clip: text; -webkit-background-clip: text;
-      color: transparent;
-    }
+/* modal */
+.ov{position:fixed;inset:0;z-index:80;background:rgba(27,33,51,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:92dvh;border-radius:24px 24px 0 0;display:flex;flex-direction:column;animation:up .2s ease-out}
+.sheet.wide{max-width:760px}
+@keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.sh-h{display:flex;align-items:center;justify-content:space-between;padding:16px 12px 8px 20px}
+.sh-h h2{font-size:21px}
+.sh-b{padding:8px 20px 12px;overflow:auto;flex:1}
+.sh-f{display:flex;gap:10px;padding:12px 20px calc(14px + var(--sb));border-top:1px solid var(--line)}
+.sh-f .btn{flex:1}
+@media(min-width:700px){.ov{align-items:center}.sheet{border-radius:24px}}
 
-    .features { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
-    .feature {
-      background: #ffffffa8; padding: 9px 14px;
-      border: 1px solid white; border-radius: 14px; font-size: .9rem;
-    }
+#toast{position:fixed;left:50%;bottom:calc(92px + var(--sb));transform:translateX(-50%);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:calc(100% - 32px);max-width:420px}
+.tt{background:var(--ink);color:#fff;padding:12px 16px;border-radius:14px;font-weight:600;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:up .2s ease-out}
+.tt.ok{background:var(--ok)} .tt.err{background:var(--bad)}
 
-    .tabs {
-      display: flex; padding: 5px; background: #f0f2fa;
-      border-radius: 14px; gap: 5px; margin-bottom: 22px;
-    }
+/* import preview */
+.imp{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
+.imp h3{font-size:19px}
+.crow{display:grid;grid-template-columns:1fr 78px 64px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:15px}
+.crow .inp{height:40px;padding:0 8px;text-align:center;font-size:16px;border-radius:10px}
+.crow .chk{min-height:36px;justify-content:center}
+.warnl{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:14px;margin-top:10px}
 
-    .tabs button { flex: 1; background: transparent; color: var(--muted); }
-    .tabs button.active { background: white; color: var(--primary-dark); }
+/* print */
+#print{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff;font-size:14pt}
+  #app,#toast,#ov,#kp,#bar{display:none!important}
+  #print{display:block}
+}
+.rp{font-family:"Sarabun","TH Sarabun New",sans-serif;color:#000}
+.rp-head{display:flex;align-items:center;gap:14px;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:12px}
+.rp-head img{width:70px;height:70px;object-fit:contain}
+.rp-head .s{font:700 20pt/1.2 "Sarabun",sans-serif}
+.rp-head .t{font-size:16pt;font-weight:700}
+.rp-info{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:13pt}
+.rp-info td{padding:2px 6px}
+.rp-t{width:100%;border-collapse:collapse;font-size:13pt}
+.rp-t th,.rp-t td{border:1px solid #000;padding:5px 8px}
+.rp-t th{background:#eee}
+.rp-t td.c,.rp-t th.c{text-align:center}
+.rp-t tfoot td{font-weight:700}
+.rp-note{font-size:11pt;margin-top:6px}
+.rp-sign{display:flex;justify-content:space-around;margin-top:46px;text-align:center;font-size:13pt}
+.rp-sign div{width:42%}
+.rp-sign .ln{border-bottom:1px dotted #000;height:34px;margin-bottom:6px}
 
-    button {
-      border: 0; border-radius: 12px; padding: 10px 17px;
-      font-weight: 700; background: var(--primary); color: white;
-    }
-
-    button:hover { filter: brightness(.96); }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    .secondary { background: #ede9ff; color: var(--primary-dark); }
-    .teal { background: var(--teal); }
-    .danger { background: #ffe5ed; color: var(--danger); }
-    .light { background: #f0f2f8; color: var(--ink); }
-    .full { width: 100%; }
-
-    label { display: block; font-weight: 650; margin: 12px 0 6px; }
-    input, select {
-      width: 100%; border: 1px solid #ccd3e3;
-      padding: 12px 14px; border-radius: 12px;
-      color: var(--ink); background: white; min-height: 47px;
-    }
-
-    input[type=checkbox] { width: 20px; min-height: 20px; accent-color: var(--primary); }
-    input[type=number] { min-width: 90px; }
-    form button[type=submit] { margin-top: 20px; }
-
-    .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .between { justify-content: space-between; }
-    .grow { flex: 1; min-width: 180px; }
-    .actions { display: flex; flex-wrap: wrap; gap: 9px; margin: 18px 0 0; }
-    .space { margin-top: 20px; }
-
-    .stats {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 14px; margin-bottom: 20px;
-    }
-
-    .stat { border-radius: 19px; padding: 18px; background: #ede8ff; }
-    .stat:nth-child(2) { background: #daf5ee; }
-    .stat:nth-child(3) { background: #fff0cf; }
-    .stat strong { font-size: 1.7rem; display: block; }
-
-    .scroll { overflow-x: auto; max-height: 68vh; border-radius: 14px; border: 1px solid var(--line); }
-    table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-    th, td {
-      padding: 12px 10px; text-align: left;
-      border-bottom: 1px solid var(--line); border-right: 1px solid var(--line);
-      vertical-align: middle;
-    }
-
-    th {
-      color: #525f79; font-weight: 700; background: #f6f7fc;
-      position: sticky; top: 0; z-index: 2;
-    }
-
-    /* ตรึงคอลัมน์รหัสและชื่อนักเรียนให้อยู่กับที่เวลาเลื่อนตารางไปทางขวา */
-    th:nth-child(1), td:nth-child(1) {
-      position: sticky; left: 0; background: #f6f7fc; z-index: 3;
-      min-width: 90px;
-    }
-    td:nth-child(1) { background: #ffffff; }
-
-    th:nth-child(2), td:nth-child(2) {
-      position: sticky; left: 90px; background: #f6f7fc; z-index: 3;
-      min-width: 170px; box-shadow: 2px 0 5px rgba(0,0,0,0.03);
-    }
-    td:nth-child(2) { background: #ffffff; }
-
-    td select { min-width: 85px; padding: 6px 8px; min-height: 38px; }
-    
-    .grade {
-      display: inline-grid; place-items: center;
-      min-width: 46px; padding: 4px 10px;
-      border-radius: 10px; color: #5141b4; background: #eee9ff; font-weight: 800;
-    }
-
-    .notice { background: #fff5d9; color: #765512; padding: 16px; border-radius: 14px; }
-    .success { background: #e1f7ed; color: #116545; }
-    .credential {
-      background: #e5f7f2; border: 1px solid #a6ded0;
-      padding: 18px; border-radius: 14px; margin-top: 16px;
-      overflow-wrap: anywhere;
-    }
-
-    details { margin-top: 14px; }
-    summary { font-weight: 750; padding: 10px 0; }
-    footer { text-align: center; color: var(--muted); padding: 28px 0; font-size: .85rem; }
-
-    #busy {
-      position: fixed; inset: 0; background: #f5f7ffb8;
-      backdrop-filter: blur(3px); z-index: 100;
-      display: grid; place-items: center;
-    }
-
-    #busy > div {
-      padding: 25px 35px; background: white; border-radius: 20px;
-      box-shadow: var(--shadow); text-align: center;
-    }
-
-    .spinner {
-      width: 34px; height: 34px; border: 4px solid #e8e2ff;
-      border-top-color: var(--primary); border-radius: 50%;
-      margin: 0 auto 10px; animation: spin .8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
-
-    #message {
-      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
-      width: min(600px, 92%); padding: 14px 18px;
-      border-radius: 14px; background: #202642; color: white;
-      box-shadow: var(--shadow); z-index: 110;
-    }
-
-    @media (max-width: 720px) {
-      .hero { grid-template-columns: 1fr; gap: 20px; padding-top: 12px; }
-      .card { padding: 20px; border-radius: 20px; }
-      header { align-items: flex-start; padding: 18px 0; }
-      .stats { gap: 8px; }
-      .stat { padding: 13px; font-size: .8rem; }
-      .stat strong { font-size: 1.4rem; }
-    }
-  </style>
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
-
 <body>
-  <div class="container">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true">G</div>
-        <div>
-          <strong id="schoolName">ระบบผลการเรียน</strong>
-          <span class="muted small">Student Grade Portal</span>
-        </div>
-      </div>
-      <div class="row">
-        <span class="pill">เทอม 1 / 2569</span>
-        <button id="logoutBtn" class="light" hidden>ออกจากระบบ</button>
-      </div>
-    </header>
-
-    <main>
-      <section id="home" class="hero">
-        <div>
-          <span class="pill">ผลการเรียนออนไลน์</span>
-          <h1>ทุกความตั้งใจ<br><span class="gradient">ดูผลได้ง่าย ๆ</span></h1>
-          <p class="muted">ตรวจสอบเกรดรายวิชาและ GPA<br>ภาคเรียนที่ 1 ปีการศึกษา 2569</p>
-          <div class="features">
-            <span class="feature">15 รายวิชา</span>
-            <span class="feature">รองรับมือถือ</span>
-            <span class="feature">ไม่ต้องเลือกปีหรือเทอม</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="tabs">
-            <button id="studentTab" class="active" type="button">นักเรียน</button>
-            <button id="staffTab" type="button">ครู / ผู้ดูแล</button>
-          </div>
-
-          <form id="studentForm">
-            <h2>เข้าดูผลการเรียน</h2>
-            <p class="muted small">กรอกข้อมูลของตนเองเท่านั้น</p>
-            <label for="nationalId">เลขบัตรประชาชน</label>
-            <input id="nationalId" type="text" inputmode="numeric"
-              maxlength="13" minlength="13" pattern="[0-9]{13}"
-              autocomplete="off" placeholder="เลขบัตรประชาชน 13 หลัก" required>
-            <button class="full" type="submit">ดูผลการเรียน</button>
-            <p class="muted small">หากเข้าใช้งานไม่ได้ กรุณาติดต่อครูประจำชั้น</p>
-          </form>
-
-          <form id="staffForm" hidden>
-            <h2>เข้าสู่ระบบบุคลากร</h2>
-            <label for="username">ชื่อผู้ใช้</label>
-            <input id="username" autocomplete="username" required>
-            <label for="password">รหัสผ่าน</label>
-            <input id="password" type="password" autocomplete="current-password" required>
-            <button class="full" type="submit">เข้าสู่ระบบ</button>
-          </form>
-        </div>
-      </section>
-
-      <section id="studentView" hidden></section>
-
-      <section id="staffView" hidden>
-        <div class="card">
-          <div class="row between">
-            <div>
-              <h2>บันทึกเกรดนักเรียน (ตารางรวม 15 วิชา)</h2>
-              <span id="staffLabel" class="muted"></span>
-            </div>
-            <span class="pill">ภาคเรียนที่ 1 ปีการศึกษา 2569</span>
-          </div>
-
-          <div class="row space">
-            <div class="grow">
-              <label for="roomSelect">เลือกชั้น / ห้อง</label>
-              <select id="roomSelect"></select>
-            </div>
-            <button id="loadRoomBtn" class="secondary" style="margin-top:28px">โหลดข้อมูลห้อง</button>
-          </div>
-        </div>
-
-        <div id="classPanel" hidden>
-          <div class="stats">
-            <div class="stat"><span>จำนวนนักเรียน</span><strong id="studentCount">0</strong></div>
-            <div class="stat"><span>ช่องที่กรอกแล้ว</span><strong id="gradeCount">0</strong></div>
-            <div class="stat"><span>สถานะห้อง</span><strong id="classStatus">ร่าง</strong></div>
-          </div>
-
-          <div class="card">
-            <div class="row between">
-              <h3 id="roomTitle"></h3>
-              <span id="dirtyLabel" class="muted small"></span>
-            </div>
-            <p class="muted small">สามารถเลื่อนตารางไปทางขวาเพื่อกรเกรดวิชาอื่นๆ เพิ่มเติมได้</p>
-            
-            <div class="scroll">
-              <table>
-                <thead id="gradeHeader"></thead>
-                <tbody id="gradeBody"></tbody>
-              </table>
-            </div>
-
-            <div class="actions space">
-              <button id="saveBtn">บันทึกร่างทั้งหมด</button>
-              <button id="publishBtn" class="teal">อนุมัติผลทั้งห้อง</button>
-              <button id="unpublishBtn" class="danger">ยกเลิกอนุมัติ</button>
-            </div>
-
-            <div class="actions">
-              <button id="gradeTemplateBtn" class="secondary">ดาวน์โหลดแม่แบบเกรด Excel</button>
-              <button id="gradeImportBtn" class="light">นำเข้าเกรดจาก Excel</button>
-            </div>
-          </div>
-        </div>
-
-        <section id="adminPanel" hidden>
-          <div class="card">
-            <h2>พื้นที่ผู้ดูแลระบบ</h2>
-
-            <details open>
-              <summary>นำเข้าข้อมูลนักเรียน</summary>
-              <p class="muted small">
-                ครั้งละไม่เกิน 100 คน รหัสนักเรียนเดิมจะเป็นการปรับปรุงข้อมูล
-                โดยไม่อนุญาตให้ย้ายห้องของผู้ที่มีเกรดแล้ว
-              </p>
-              <div class="actions">
-                <button id="studentTemplateBtn" class="secondary">ดาวน์โหลดแม่แบบนักเรียน</button>
-                <button id="studentImportBtn" class="teal">นำเข้านักเรียน Excel</button>
-              </div>
-            </details>
-
-            <details>
-              <summary>จัดการบัญชีครูและผู้ดูแล</summary>
-              <form id="accountForm">
-                <div class="row">
-                  <div class="grow">
-                    <label for="newUsername">ชื่อผู้ใช้ใหม่</label>
-                    <input id="newUsername" placeholder="teacher01" required>
-                  </div>
-                  <div class="grow">
-                    <label for="newRole">บทบาท</label>
-                    <select id="newRole">
-                      <option value="teacher">ครู</option>
-                      <option value="admin">ผู้ดูแลระบบ</option>
-                    </select>
-                  </div>
-                  <div class="grow">
-                    <label for="newRooms">ห้องที่รับผิดชอบ</label>
-                    <input id="newRooms" placeholder="ป.1/1,ป.1/2">
-                  </div>
-                </div>
-                <button type="submit">สร้างบัญชีและรหัสผ่าน</button>
-              </form>
-
-              <div id="credentials" class="credential" hidden></div>
-
-              <div class="actions">
-                <button id="accountsBtn" class="light">โหลดรายการบัญชี</button>
-              </div>
-              <div class="scroll space">
-                <table>
-                  <thead>
-                    <tr><th>ชื่อผู้ใช้</th><th>บทบาท / ห้อง</th><th>จัดการ</th></tr>
-                  </thead>
-                  <tbody id="accountBody"></tbody>
-                </table>
-              </div>
-            </details>
-
-            <details>
-              <summary>ชื่อโรงเรียนและน้ำหนัก GPA</summary>
-              <form id="settingsForm">
-                <label for="schoolInput">ชื่อโรงเรียน</label>
-                <input id="schoolInput" required>
-                <p class="notice small">
-                  ค่าเริ่มต้นทุกวิชาน้ำหนัก 1 และนับ GPA
-                  กรุณาปรับให้ตรงกับเกณฑ์โรงเรียนก่อนประกาศผล
-                </p>
-                <div class="scroll">
-                  <table>
-                    <thead><tr><th>วิชา</th><th>น้ำหนัก</th><th>คิด GPA</th></tr></thead>
-                    <tbody id="settingsBody"></tbody>
-                  </table>
-                </div>
-                <button type="submit">บันทึกการตั้งค่า</button>
-              </form>
-            </details>
-          </div>
-        </section>
-
-        <div class="card">
-          <details>
-            <summary>เปลี่ยนรหัสผ่านบัญชีของคุณ</summary>
-            <form id="changePasswordForm">
-              <label for="oldPassword">รหัสผ่านเดิม</label>
-              <input id="oldPassword" type="password" required>
-              <label for="newPassword">รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)</label>
-              <input id="newPassword" type="password" minlength="6" required>
-              <label for="confirmPassword">ยืนยันรหัสผ่านใหม่</label>
-              <input id="confirmPassword" type="password" minlength="6" required>
-              <button type="submit">บันทึกรหัสผ่านใหม่</button>
-            </form>
-          </details>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      ภาคเรียนที่ 1 ปีการศึกษา 2569 · กรุณาออกจากระบบหลังใช้งาน
-    </footer>
+<div id="bar"></div>
+<div id="app"></div>
+<div id="print"></div>
+<div id="toast" aria-live="polite"></div>
+<div id="kp" hidden>
+  <div class="kl" id="kpl"></div>
+  <div class="kg">
+    <button data-v="0">0</button><button data-v="1">1</button><button data-v="1.5">1.5</button><button data-v="2">2</button>
+    <button data-v="2.5">2.5</button><button data-v="3">3</button><button data-v="3.5">3.5</button><button data-v="4">4</button>
+    <button data-v="" class="del">ลบ</button><button class="next" data-next="1">ถัดไป</button><button class="done" data-done="1">เสร็จ</button>
   </div>
+</div>
 
-  <input id="studentFile" type="file" accept=".xlsx" hidden>
-  <input id="gradeFile" type="file" accept=".xlsx" hidden>
+<script>
+/* ============================================================
+ * ตั้งค่า: วาง Web App URL ที่ได้จากการ Deploy Apps Script (ลงท้ายด้วย /exec)
+ * ============================================================ */
+const API_URL = "https://script.google.com/macros/s/AKfycbzB1_oz02b43iXZMkqG6rbnQE-6d5h6hVa6eNA7B1l6AeezMxCS3VDnGNjWT2qaRUP_BQ/exec";
 
-  <div id="busy" role="status" aria-live="polite" hidden>
-    <div><div class="spinner" aria-hidden="true"></div>กำลังดำเนินการ…</div>
-  </div>
-  <div id="message" role="alert" hidden></div>
+/* ---------- ตัวช่วย ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const COARSE = matchMedia('(pointer:coarse)').matches;
+const GRADES = [0, 1, 1.5, 2, 2.5, 3, 3.5, 4];
+const isGrade = v => v !== '' && v != null && GRADES.includes(Number(v));
+const num = n => (n == null || n === '' ? '' : String(Number(n)));
+const gpaStr = g => (g == null ? '–' : Number(g).toFixed(2));
+const roundGpa = x => Math.round(x * 100) / 100;     // ต้องตรงกับ roundGpa_ ใน Code.gs
+const when = iso => { try { return new Date(iso).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return ''; } };
+const shortPrefix = p => ({ 'เด็กชาย': 'ด.ช.', 'เด็กหญิง': 'ด.ญ.' }[p] || p || '');
+const stuName = s => (s.prefix || '') + s.first + ' ' + s.last;
+const gradeClass = g => g == null ? 'n' : g >= 3 ? 'g' : g <= 0.99 ? 'b' : '';
+const calcGpa = (subs, get) => {
+  let pts = 0, cr = 0;
+  subs.forEach(s => { if (!s.count_gpa) return; const g = get(s); if (g === '' || g == null) return; pts += g * s.credit; cr += s.credit; });
+  return cr ? roundGpa(pts / cr) : null;
+};
+function nidOk(s) {   // ตรวจเลขหลักสุดท้ายของบัตรประชาชนไทย
+  if (!/^\d{13}$/.test(s)) return false;
+  let t = 0; for (let i = 0; i < 12; i++) t += +s[i] * (13 - i);
+  return (11 - t % 11) % 10 === +s[12];
+}
 
-  <script src="./vendor/xlsx.full.min.js"></script>
+const ICON = {
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10-4-4L4 16v4zM13 7l4 4"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+  print: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/></svg>',
+  up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>',
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9H4zM10 20v-6h4v6"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-4 3-6 6.5-6s6 2 6.5 6M16 4.5a3.5 3.5 0 010 7M18 14c2 .6 3.2 2.4 3.5 6"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19a2 2 0 012-2h13"/></svg>',
+  key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/></svg>',
+  cog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>'
+};
 
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwx0vhK-Cge-qj8qzkafNRF-Vx3ZzxG4jcETkw7GcFcY3-AvtN8Hs-CLxEj5EoK04ZV/exec';
+/* ---------- สถานะ + เรียก API ---------- */
+const S = { token: sessionStorage.getItem('tk') || '', role: '', name: '', levels: [], cfg: { school_name: 'ระบบผลการเรียน', logo_url: '', term: '' }, allLevels: [] };
+const app = $('#app');
+let busy = 0;
+const setBusy = d => { busy += d; $('#bar').classList.toggle('on', busy > 0); };
 
-    const $ = id => document.getElementById(id);
-    const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;',
-      '"': '&quot;', "'": '&#39;'
-    }[c]));
-
-    let token = '';
-    let role = '';
-    let meta = null;
-    let currentClass = null;
-    let dirty = false;
-    let busy = false;
-    let sessionTimer;
-    let messageTimer;
-    let accountRows = [];
-
-    function notify(message) {
-      $('message').textContent = message;
-      $('message').hidden = false;
-      clearTimeout(messageTimer);
-      messageTimer = setTimeout(() => $('message').hidden = true, 9000);
+async function api(action, data = {}) {
+  if (API_URL.includes('PASTE')) throw new Error('ยังไม่ได้ตั้งค่า API_URL ในไฟล์ index.html');
+  setBusy(1);
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 60000);
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, token: S.token, ...data }), signal: ctl.signal
+    });
+    const j = await res.json();
+    if (!j.ok) {
+      const e = new Error(j.error || 'เกิดข้อผิดพลาด'); e.code = j.code;
+      if (j.code === 'AUTH' && S.token) expireSession();
+      throw e;
     }
+    return j.data;
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('เชื่อมต่อช้าเกินไป กรุณาลองใหม่');
+    if (e instanceof SyntaxError) throw new Error('เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง ตรวจว่า Deploy เป็น Web app และ "Who has access" = Anyone');
+    if (e instanceof TypeError) throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
+    throw e;
+  } finally { clearTimeout(to); setBusy(-1); }
+}
 
-    async function run(fn) {
-      if (busy) return;
-      busy = true;
-      $('busy').hidden = false;
+function expireSession() {
+  sessionStorage.removeItem('tk'); S.token = ''; G = null; closeModal(); hideKp();
+  renderLogin(); toast('หมดเวลาเข้าใช้งาน กรุณาเข้าสู่ระบบใหม่', 'err');
+}
+function logout() {
+  if (G && G.dirty.size && !confirm('มีเกรดที่ยังไม่ได้บันทึก ออกจากระบบเลยหรือไม่?')) return;
+  api('logout').catch(() => {});
+  sessionStorage.removeItem('tk'); S.token = ''; S.role = ''; G = null; hideKp(); renderLogin();
+}
+
+/* ---------- Toast / Modal ---------- */
+function toast(msg, type = '') {
+  const t = document.createElement('div'); t.className = 'tt ' + type; t.textContent = msg;
+  $('#toast').appendChild(t); setTimeout(() => t.remove(), 3200);
+}
+function closeModal() { const o = $('#ov'); if (o) o.remove(); }
+/** actions: [{label, cls, fn}] — fn คืน false เพื่อไม่ปิดหน้าต่าง */
+function modal({ title, body, actions = [], wide = false }) {
+  closeModal();
+  const ov = document.createElement('div'); ov.id = 'ov'; ov.className = 'ov';
+  ov.innerHTML = `<div class="sheet ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+    <div class="sh-h"><h2>${esc(title)}</h2><button class="ic" data-x aria-label="ปิด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sh-b">${body}</div><div class="sh-f"></div></div>`;
+  document.body.appendChild(ov);
+  const f = $('.sh-f', ov);
+  actions.forEach(a => {
+    const b = document.createElement('button'); b.className = 'btn ' + (a.cls || ''); b.textContent = a.label;
+    b.onclick = async () => {
+      b.disabled = true;
+      try { const r = await a.fn?.(); if (r !== false) closeModal(); }
+      catch (e) { toast(e.message, 'err'); }
+      finally { b.disabled = false; }
+    };
+    f.appendChild(b);
+  });
+  if (!actions.length) f.remove();
+  ov.addEventListener('mousedown', e => { if (e.target === ov) closeModal(); });
+  $('[data-x]', ov).onclick = closeModal;
+  const first = $('input:not([disabled]),select', ov); if (first && !COARSE) first.focus();
+  return ov;
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+const confirmBox = (msg, ok = 'ยืนยัน', danger = false, title = 'ยืนยันการทำรายการ') => new Promise(res => {
+  let done = false;
+  const m = modal({ title, body: `<p style="margin:4px 0 8px">${esc(msg)}</p>`, actions: [
+    { label: 'ยกเลิก', cls: 'ghost', fn: () => { done = true; res(false); } },
+    { label: ok, cls: danger ? 'danger' : '', fn: () => { done = true; res(true); } }] });
+  $('[data-x]', m).addEventListener('click', () => { if (!done) res(false); });
+  m.addEventListener('mousedown', e => { if (e.target === m && !done) res(false); });
+});
+
+/* ---------- โครงหน้า ---------- */
+function logoHtml() {
+  return S.cfg.logo_url ? `<span class="logo"><img src="${esc(S.cfg.logo_url)}" alt="" referrerpolicy="no-referrer"></span>`
+    : `<span class="logo">${esc((S.cfg.school_name || 'ร').trim().charAt(0))}</span>`;
+}
+function topbar(extra = '') {
+  return `<header class="top">${logoHtml()}<div class="brand"><b>${esc(S.cfg.school_name)}</b><small>${esc(S.name)}</small></div>${extra}
+    <button class="ic" id="btnOut" aria-label="ออกจากระบบ">${ICON.out}</button></header>`;
+}
+function bindOut() { const b = $('#btnOut'); if (b) b.onclick = logout; }
+const NAV = [['home', 'ชั้นเรียน', 'home'], ['students', 'นักเรียน', 'users'], ['subjects', 'วิชา', 'book'], ['users', 'ผู้ใช้', 'key'], ['settings', 'ตั้งค่า', 'cog']];
+function staffShell(inner, tab, wide = false) {
+  const nav = S.role === 'admin' ? `<nav class="nav">${NAV.map(([id, label, ic]) => `<button data-tab="${id}" class="${tab === id ? 'on' : ''}">${ICON[ic]}${label}</button>`).join('')}</nav>` : '';
+  app.innerHTML = `${topbar()}<main class="main ${wide ? 'wide' : ''} ${nav ? 'has-nav' : ''}">${inner}</main>${nav}`;
+  bindOut();
+  $$('[data-tab]').forEach(b => b.onclick = () => adminGo(b.dataset.tab));
+}
+const spin = '<div class="empty muted">กำลังโหลด…</div>';
+
+/* ============================== เข้าสู่ระบบ ============================== */
+async function renderLogin(tab = 'student') {
+  hideKp(); document.body.classList.remove('kp-open');
+  app.innerHTML = `
+    <div class="hero">${logoHtml()}<h1>${esc(S.cfg.school_name)}</h1><p>ระบบผลการเรียนออนไลน์${S.cfg.term ? ' ปีการศึกษา ' + esc(S.cfg.term) : ''}</p></div>
+    <div class="card login-card">
+      <div class="seg"><button id="tS" class="${tab === 'student' ? 'on' : ''}">นักเรียน</button><button id="tT" class="${tab === 'staff' ? 'on' : ''}">ครู / ผู้ดูแลระบบ</button></div>
+      ${tab === 'student' ? `
+        <div class="fld"><label class="f" for="nid">เลขบัตรประจำตัวประชาชน</label>
+        <input class="inp nid" id="nid" inputmode="numeric" autocomplete="off" maxlength="17" placeholder="0-0000-00000-00-0"></div>
+        <p class="hint">ใช้ยืนยันตัวตนเพื่อดูผลการเรียนของตัวเองเท่านั้น</p>
+        <p class="err" id="err" role="alert"></p>
+        <button class="btn block" id="go" disabled>ดูผลการเรียน</button>` : `
+        <div class="fld"><label class="f" for="un">ชื่อผู้ใช้</label><input class="inp" id="un" autocomplete="username" autocapitalize="none"></div>
+        <div class="fld"><label class="f" for="pw">รหัสผ่าน</label><input class="inp" id="pw" type="password" autocomplete="current-password"></div>
+        <p class="err" id="err" role="alert"></p>
+        <button class="btn block" id="go">เข้าสู่ระบบ</button>`}
+    </div>`;
+  $('#tS').onclick = () => renderLogin('student'); $('#tT').onclick = () => renderLogin('staff');
+  const err = $('#err'), go = $('#go');
+  if (tab === 'student') {
+    const nid = $('#nid');
+    nid.addEventListener('input', () => {
+      const d = nid.value.replace(/\D/g, '').slice(0, 13);
+      nid.value = d.replace(/^(\d)(\d{0,4})(\d{0,5})(\d{0,2})(\d{0,1}).*$/, (m, a, b, c, d2, e) => [a, b, c, d2, e].filter(Boolean).join('-'));
+      go.disabled = d.length !== 13; err.textContent = '';
+    });
+    const submit = async () => {
+      go.disabled = true; err.textContent = '';
       try {
-        await fn();
-      } catch (err) {
-        notify(err.message || 'ดำเนินการไม่สำเร็จ');
-      } finally {
-        busy = false;
-        $('busy').hidden = true;
-      }
-    }
-
-    async function api(action, data = {}, useToken = token) {
-      if (!API_URL.startsWith('https://script.google.com/')) {
-        throw new Error('ผู้ดูแลต้องใส่ API_URL ใน index.html ก่อน');
-      }
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45000);
-
+        const r = await api('studentLogin', { nid: nid.value });
+        S.token = r.token; S.role = 'student'; S.name = r.name; sessionStorage.setItem('tk', r.token);
+        renderStudent();
+      } catch (e) { err.textContent = e.message; go.disabled = nid.value.replace(/\D/g, '').length !== 13; }
+    };
+    go.onclick = submit; nid.addEventListener('keydown', e => { if (e.key === 'Enter' && !go.disabled) submit(); });
+    if (!COARSE) nid.focus();
+  } else {
+    const submit = async () => {
+      go.disabled = true; err.textContent = '';
       try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          credentials: 'omit',
-          redirect: 'follow',
-          body: JSON.stringify({ action, token: useToken, ...data }),
-          signal: controller.signal
-        });
-
-        const raw = await response.text();
-        let result;
-
-        try {
-          result = JSON.parse(raw);
-        } catch (_) {
-          throw new Error('API ไม่ได้ส่ง JSON กรุณาตรวจการเผยแพร่ Apps Script');
-        }
-
-        if (!result.ok) {
-          if (result.code === 'AUTH') clearSession();
-          throw new Error(result.message || 'ดำเนินการไม่สำเร็จ');
-        }
-
-        return result.data;
-
-      } catch (err) {
-        if (err.name === 'AbortError') {
-          throw new Error(
-            'รอนานเกินกำหนด คำสั่งอาจบันทึกแล้ว กรุณาโหลดข้อมูลใหม่ก่อนทำซ้ำ'
-          );
-        }
-        if (err instanceof TypeError) {
-          throw new Error('เชื่อมต่อไม่ได้ กรุณาตรวจอินเทอร์เน็ตและการเผยแพร่ API');
-        }
-        throw err;
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
-    function applyMeta(data) {
-      meta = data;
-      $('schoolName').textContent = meta.school;
-      document.title = meta.school + ' | ผลการเรียน 1/2569';
-
-      $('schoolInput').value = meta.school;
-      $('settingsBody').innerHTML = meta.subjects.map((s, i) => `
-        <tr>
-          <td>${esc(s.name)}</td>
-          <td>
-            <input type="number" min="0" max="100" step="0.01"
-              data-weight="${i}" value="${s.weight}"
-              aria-label="น้ำหนัก ${esc(s.name)}">
-          </td>
-          <td>
-            <input type="checkbox" data-include="${i}"
-              ${s.include ? 'checked' : ''}
-              aria-label="นำ ${esc(s.name)} มาคิด GPA">
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function enterSession(data) {
-      token = data.token;
-      role = data.role;
-      $('home').hidden = true;
-      $('logoutBtn').hidden = false;
-      clearTimeout(sessionTimer);
-      sessionTimer = setTimeout(() => {
-        logout(false);
-        notify('ครบเวลาใช้งาน กรุณาเข้าสู่ระบบใหม่');
-      }, 600000);
-    }
-
-    function clearSession() {
-      clearTimeout(sessionTimer);
-      token = '';
-      role = '';
-      dirty = false;
-      currentClass = null;
-      accountRows = [];
-
-      $('home').hidden = false;
-      $('studentView').hidden = true;
-      $('staffView').hidden = true;
-      $('adminPanel').hidden = true;
-      $('classPanel').hidden = true;
-      $('logoutBtn').hidden = true;
-      $('credentials').hidden = true;
-
-      $('studentView').innerHTML = '';
-      $('gradeBody').innerHTML = '';
-      $('accountBody').innerHTML = '';
-      $('credentials').textContent = '';
-
-      $('nationalId').value = '';
-      $('password').value = '';
-      $('studentFile').value = '';
-      $('gradeFile').value = '';
-    }
-
-    function logout(ask = true) {
-      if (ask && dirty && !confirm('มีเกรดที่ยังไม่บันทึก ต้องการออกจากระบบหรือไม่?')) {
-        return;
-      }
-      const old = token;
-      clearSession();
-      if (old) api('logout', {}, old).catch(() => {});
-    }
-
-    function setTab(staff) {
-      $('studentForm').hidden = staff;
-      $('staffForm').hidden = !staff;
-      $('studentTab').classList.toggle('active', !staff);
-      $('staffTab').classList.toggle('active', staff);
-    }
-
-    function renderStudent(result) {
-      $('studentView').hidden = false;
-
-      const gradeContent = result.published ? `
-        <div class="stats">
-          <div class="stat"><span>รายวิชา</span><strong>${result.grades.length}</strong></div>
-          <div class="stat"><span>GPA</span><strong>${
-            result.gpa === null ? '—' : Number(result.gpa).toFixed(2)
-          }</strong></div>
-          <div class="stat"><span>สถานะ</span><strong>ประกาศแล้ว</strong></div>
-        </div>
-        ${result.gpa === null ? `
-          <p class="notice">
-            ยังไม่แสดง GPA: มีผลที่ไม่เป็นเกรดตัวเลข
-            หรือไม่มีรายวิชาที่นำมาคำนวณ
-          </p>` : ''}
-        <div class="scroll">
-          <table>
-            <thead><tr><th>รายวิชา</th><th>เกรด</th></tr></thead>
-            <tbody>
-              ${result.grades.map(g => `
-                <tr>
-                  <td>${esc(g.subject)}</td>
-                  <td><span class="grade">${esc(g.grade)}</span></td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      ` : `
-        <div class="notice">
-          ยังไม่ประกาศผลการเรียน หรืออยู่ระหว่างปรับปรุงผลการเรียน
-          ภาคเรียนที่ 1 ปีการศึกษา 2569
-        </div>
-      `;
-
-      $('studentView').innerHTML = `
-        <div class="card">
-          <span class="pill">ภาคเรียนที่ 1 ปีการศึกษา 2569</span>
-          <h2 class="space">${esc(result.full_name)}</h2>
-          <p class="muted">
-            รหัสนักเรียน ${esc(result.student_code)}
-            · ชั้น/ห้อง ${esc(result.room)}
-          </p>
-        </div>
-        <div class="card">${gradeContent}</div>
-      `;
-    }
-
-    async function loadStaff() {
-      const info = await api('staffInfo');
-      applyMeta(info.meta);
-
-      $('staffView').hidden = false;
-      $('adminPanel').hidden = info.role !== 'admin';
-      $('staffLabel').textContent =
-        info.username + ' · ' + (info.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ครู');
-
-      $('roomSelect').innerHTML = info.rooms.length
-        ? info.rooms.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')
-        : '<option value="">ยังไม่มีห้องที่ใช้งานได้</option>';
-
-      $('loadRoomBtn').disabled = !info.rooms.length;
-      currentClass = null;
-      dirty = false;
-      $('classPanel').hidden = true;
-    }
-
-    function canLeaveClass() {
-      return !dirty || confirm('มีเกรดที่ยังไม่บันทึก ต้องการละทิ้งการแก้ไขหรือไม่?');
-    }
-
-    function renderClass() {
-      const c = currentClass;
-      if (!c) return;
-
-      $('classPanel').hidden = false;
-
-      const filled = c.students.reduce(
-        (sum, s) => sum + s.values.filter(v => v !== '').length, 0
-      );
-      const totalCells = c.students.length * meta.subjects.length;
-
-      $('studentCount').textContent = c.students.length;
-      $('gradeCount').textContent = `${filled} / ${totalCells}`;
-      $('classStatus').textContent = c.published ? 'อนุมัติแล้ว' : c.locked ? 'ล็อกแล้ว' : 'ร่าง';
-      $('roomTitle').textContent = `ห้องเรียน: ${c.room}`;
-      $('dirtyLabel').textContent = dirty ? 'มีการแก้ไขที่ยังไม่บันทึก' : 'ข้อมูลล่าสุดจากระบบ';
-
-      // สร้างหัวตาราง (รหัส, ชื่อ, และรายชื่อวิชาทั้ง 15 วิชา)
-      $('gradeHeader').innerHTML = `
-        <tr>
-          <th>รหัส</th>
-          <th>ชื่อ–นามสกุล</th>
-          ${meta.subjects.map(s => `<th>${esc(s.name)}</th>`).join('')}
-        </tr>
-      `;
-
-      // สร้างแถวข้อมูลนักเรียนแต่ละคนพร้อมช่องเลือกเกรดครบทุกวิชา
-      $('gradeBody').innerHTML = c.students.map((s, rowIndex) => `
-        <tr>
-          <td>${esc(s.student_code)}</td>
-          <td>${esc(s.full_name)}</td>
-          ${s.values.map((val, colIndex) => {
-            const sub = meta.subjects[colIndex];
-            const options = meta.gradeOptions.filter(g =>
-              !sub.include || !['ผ', 'มผ'].includes(g)
-            );
-            if (val && !options.includes(val)) options.push(val);
-
-            return `
-              <td>
-                <select data-row="${rowIndex}" data-col="${colIndex}" ${c.locked ? 'disabled' : ''}
-                  aria-label="เกรด ${esc(s.full_name)} วิชา ${esc(sub.name)}">
-                  ${options.map(g => `
-                    <option value="${esc(g)}" ${val === g ? 'selected' : ''}>
-                      ${g === '' ? '—' : esc(g)}
-                    </option>
-                  `).join('')}
-                </select>
-              </td>
-            `;
-          }).join('')}
-        </tr>
-      `).join('');
-
-      $('saveBtn').disabled = c.locked;
-      $('publishBtn').disabled = dirty || c.locked || !c.complete;
-      $('unpublishBtn').disabled = !c.locked;
-      $('gradeImportBtn').disabled = c.locked;
-    }
-
-    function updateCompleteness() {
-      currentClass.complete = currentClass.students.length > 0 &&
-        currentClass.students.every(s => s.values.every(v => v !== ''));
-    }
-
-    async function mutateClass(action, extra = {}) {
-      if (!currentClass) throw new Error('กรุณาโหลดข้อมูลห้องก่อน');
-
-      currentClass = await api(action, {
-        room: currentClass.room,
-        revision: currentClass.revision,
-        ...extra
-      });
-
-      dirty = false;
-      renderClass();
-    }
-
-    function requireExcel() {
-      if (!window.XLSX) {
-        throw new Error('ไม่พบไลบรารี Excel กรุณาตรวจไฟล์ vendor/xlsx.full.min.js');
-      }
-    }
-
-    function downloadWorkbook(sheetName, rows, filename) {
-      requireExcel();
-
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(rows);
-
-      Object.keys(ws).filter(k => !k.startsWith('!')).forEach(k => {
-        ws[k].t = 's';
-        ws[k].v = String(ws[k].v ?? '');
-        ws[k].z = '@';
-      });
-
-      ws['!cols'] = rows[0].map((_, i) => ({ wch: i === 2 ? 28 : 20 }));
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
-      XLSX.writeFile(wb, filename, { compression: true });
-    }
-
-    async function readWorkbook(file, sheetName, requiredHeaders) {
-      requireExcel();
-      if (!file) throw new Error('กรุณาเลือกไฟล์');
-      if (!file.name.toLowerCase().endsWith('.xlsx')) {
-        throw new Error('รองรับเฉพาะไฟล์ .xlsx');
-      }
-      if (file.size > 2 * 1024 * 1024) {
-        throw new Error('ไฟล์ต้องมีขนาดไม่เกิน 2 MB');
-      }
-
-      const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
-      const ws = wb.Sheets[sheetName];
-      if (!ws) throw new Error('ไม่พบแผ่นงานชื่อ ' + sheetName);
-
-      for (const key of Object.keys(ws)) {
-        if (!key.startsWith('!') && ws[key].f) {
-          throw new Error('ไฟล์นำเข้าต้องเป็นค่า ไม่ใช่สูตร Excel');
-        }
-      }
-
-      const matrix = XLSX.utils.sheet_to_json(ws, {
-        header: 1, defval: '', raw: true, blankrows: false
-      });
-
-      if (!matrix.length) throw new Error('ไฟล์ไม่มีข้อมูล');
-      const headers = matrix[0].map(v => String(v).trim());
-
-      if (
-        headers.length !== requiredHeaders.length ||
-        headers.some((h, i) => h !== requiredHeaders[i])
-      ) {
-        throw new Error('หัวคอลัมน์ไม่ตรงกับแม่แบบ กรุณาดาวน์โหลดแม่แบบใหม่');
-      }
-
-      const rows = matrix.slice(1).filter(
-        row => row.some(v => String(v).trim() !== '')
-      );
-
-      if (!rows.length || rows.length > 100) {
-        throw new Error('นำเข้าได้ครั้งละ 1–100 แถว');
-      }
-
-      return rows.map(row =>
-        Object.fromEntries(headers.map((h, i) => [h, row[i] ?? '']))
-      );
-    }
-
-    async function loadAccounts() {
-      accountRows = await api('accountList');
-
-      $('accountBody').innerHTML = accountRows.map((a, i) => `
-        <tr>
-          <td>
-            ${esc(a.username)}<br>
-            <span class="muted small">${a.is_active === '1' ? 'ใช้งาน' : 'ระงับ'}</span>
-          </td>
-          <td>
-            ${a.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ครู'}<br>
-            <span class="small">${esc(a.assigned_rooms || 'ทุกห้อง')}</span>
-          </td>
-          <td>
-            <div class="actions">
-              <button class="light" data-account="${i}" data-action="reset">รหัสใหม่</button>
-              <button class="danger" data-account="${i}" data-action="toggle">เปิด/ระงับ</button>
-              ${a.role === 'teacher'
-                ? `<button class="secondary" data-account="${i}" data-action="rooms">แก้ห้อง</button>`
-                : ''}
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function showCredentials(data) {
-      const box = $('credentials');
-      box.hidden = false;
-      box.textContent =
-        'ชื่อผู้ใช้: ' + data.username +
-        '\nรหัสผ่าน: ' + data.password +
-        '\nกรุณาคัดลอกและส่งผ่านช่องทางส่วนตัว รหัสนี้ไม่สามารถเรียกดูซ้ำได้';
-      box.style.whiteSpace = 'pre-wrap';
-    }
-
-    $('studentTab').onclick = () => setTab(false);
-    $('staffTab').onclick = () => setTab(true);
-    $('logoutBtn').onclick = () => logout();
-
-    $('studentForm').onsubmit = event => {
-      event.preventDefault();
-
-      const national_id = $('nationalId').value.trim();
-      $('nationalId').value = '';
-
-      run(async () => {
-        const data = await api('studentLogin', { national_id });
-        enterSession(data);
-        renderStudent(data.result);
-      });
+        const r = await api('staffLogin', { username: $('#un').value, password: $('#pw').value });
+        S.token = r.token; S.role = r.role; S.name = r.name; S.levels = r.levels; sessionStorage.setItem('tk', r.token);
+        enterStaff();
+      } catch (e) { err.textContent = e.message; go.disabled = false; }
     };
+    go.onclick = submit; $('#pw').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+    if (!COARSE) $('#un').focus();
+  }
+  if (API_URL.includes('PASTE')) err.textContent = 'ยังไม่ได้ตั้งค่า API_URL ใน index.html';
+}
 
-    $('staffForm').onsubmit = event => {
-      event.preventDefault();
+/* ============================== นักเรียน ============================== */
+let R = null;
+async function renderStudent(term, level) {
+  app.innerHTML = topbar() + `<main class="main">${spin}</main>`; bindOut();
+  try { R = await api('studentReport', { term, level }); }
+  catch (e) { if (S.token) toast(e.message, 'err'); return; }
+  S.cfg.school_name = R.school.name || S.cfg.school_name; S.cfg.logo_url = R.school.logo_url;
+  const st = R.student, rp = R.report;
+  const head = `<div class="me"><h2>${esc(st.name)}</h2><div class="chips">
+      ${rp ? `<span class="chip">ชั้น ${esc(rp.level)}</span>` : ''}${st.no !== '' ? `<span class="chip">เลขที่ ${esc(st.no)}</span>` : ''}<span class="chip">รหัส ${esc(st.student_id)}</span></div></div>`;
+  let body;
+  if (!rp) {
+    body = `<div class="card empty"><b>ยังไม่มีผลการเรียน</b>ผลการเรียนจะแสดงที่นี่เมื่อครูอนุมัติเกรดของชั้นเรียนแล้ว</div>`;
+  } else {
+    const terms = R.terms.length > 1 ? `<div class="terms">${R.terms.map(t => `<button class="chip sel ${t.term === rp.term && t.level === rp.level ? 'on' : ''}" data-t="${esc(t.term)}" data-l="${esc(t.level)}">${esc(t.level)} ปี ${esc(t.term)}</button>`).join('')}</div>` : '';
+    body = `${terms}
+      <div class="card gpa"><div><div class="muted sm">เกรดเฉลี่ย ปีการศึกษา ${esc(rp.term)}</div><div class="n">${gpaStr(rp.gpa)}</div></div>
+        <div style="text-align:right"><div class="muted sm">หน่วยกิตรวม</div><div class="h-title">${num(rp.credits)}</div></div></div>
+      <div class="card">${rp.rows.map(r => `<div class="sub"><div class="grow"><div class="nm">${esc(r.name)}</div><div class="muted sm">${num(r.credit)} หน่วยกิต${r.count_gpa ? '' : ' (ไม่นับ GPA)'}</div></div>
+        <div class="tile ${gradeClass(r.grade)}">${r.grade == null ? '–' : num(r.grade)}</div></div>`).join('')}</div>
+      <p class="muted sm" style="margin:0 4px">อนุมัติโดย ${esc(rp.approved_by)} เมื่อ ${esc(when(rp.approved_at))}</p>
+      <button class="btn block" id="btnPrint">${ICON.print}พิมพ์ใบรายงานผลการเรียน</button>`;
+  }
+  app.innerHTML = topbar() + `<main class="main stack">${head}${body}</main>`; bindOut();
+  $$('[data-t]').forEach(b => b.onclick = () => renderStudent(b.dataset.t, b.dataset.l));
+  const bp = $('#btnPrint'); if (bp) bp.onclick = printReport;
+}
 
-      const username = $('username').value.trim();
-      const password = $('password').value;
-      $('password').value = '';
+async function printReport() {
+  const rp = R.report, st = R.student, sc = R.school;
+  const logo = sc.logo_url ? `<img src="${esc(sc.logo_url)}" alt="" referrerpolicy="no-referrer">` : '';
+  let i = 0;
+  $('#print').innerHTML = `<div class="rp">
+    <div class="rp-head">${logo}<div><div class="s">${esc(sc.name)}</div><div class="t">ใบรายงานผลการเรียน</div><div>ปีการศึกษา ${esc(rp.term)}</div></div></div>
+    <table class="rp-info"><tr><td>ชื่อ-สกุล: <b>${esc(st.name)}</b></td><td>ชั้น: <b>${esc(rp.level)}</b></td></tr>
+      <tr><td>เลขประจำตัวนักเรียน: <b>${esc(st.student_id)}</b></td><td>เลขที่: <b>${esc(st.no)}</b></td></tr></table>
+    <table class="rp-t"><thead><tr><th class="c" style="width:48px">ที่</th><th>รายวิชา</th><th class="c" style="width:90px">หน่วยกิต</th><th class="c" style="width:90px">ผลการเรียน</th></tr></thead>
+      <tbody>${rp.rows.map(r => `<tr><td class="c">${++i}</td><td>${esc(r.name)}${r.count_gpa ? '' : ' *'}</td><td class="c">${num(r.credit)}</td><td class="c">${r.grade == null ? '-' : num(r.grade)}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="2" style="text-align:right">รวมหน่วยกิตที่นับ GPA / เกรดเฉลี่ย (GPA)</td><td class="c">${num(rp.credits)}</td><td class="c">${gpaStr(rp.gpa)}</td></tr></tfoot></table>
+    ${rp.rows.some(r => !r.count_gpa) ? '<div class="rp-note">* รายวิชาที่ไม่นำมาคำนวณเกรดเฉลี่ย</div>' : ''}
+    <div class="rp-sign"><div><div class="ln"></div>(${esc(rp.approved_by)})<br>ครูผู้อนุมัติผลการเรียน</div><div><div class="ln"></div>(${esc(sc.director_name || '..............................')})<br>ผู้อำนวยการโรงเรียน</div></div>
+    <div class="rp-note" style="margin-top:18px">พิมพ์เมื่อ ${esc(when(new Date().toISOString()))}</div></div>`;
+  const img = $('#print img');
+  if (img && !img.complete) await new Promise(r => { img.onload = img.onerror = r; setTimeout(r, 1500); });
+  const old = document.title; document.title = 'ใบรายงานผลการเรียน ' + st.name;
+  window.onafterprint = () => { document.title = old; window.onafterprint = null; };
+  window.print();
+}
 
-      run(async () => {
-        const data = await api('staffLogin', { username, password });
-        enterSession(data);
-        try {
-          await loadStaff();
-        } catch (err) {
-          logout(false);
-          throw err;
-        }
+/* ============================== ครู / แอดมิน ============================== */
+async function enterStaff() {
+  try { const c = await api('ping'); S.cfg = { ...S.cfg, ...c }; } catch (e) {}
+  ADM.tab = 'home'; renderHome();
+}
+const ADM = { tab: 'home', level: '' };
+
+async function renderHome() {
+  staffShell(spin, 'home');
+  let d;
+  try { d = await api('levelsOverview'); } catch (e) { return toast(e.message, 'err'); }
+  S.allLevels = d.levels.map(l => l.level);
+  const cards = d.levels.map(l => {
+    const pct = l.total ? Math.round(l.filled * 100 / l.total) : 0;
+    return `<button class="lv" data-l="${esc(l.level)}"><div class="row"><h3 class="grow">${esc(l.level)}</h3>
+      <span class="pill ${l.status === 'approved' ? 'ok' : ''}">${l.status === 'approved' ? 'อนุมัติแล้ว' : 'กำลังกรอก'}</span></div>
+      <div class="meter ${pct === 100 ? 'full' : ''}"><i style="width:${pct}%"></i></div>
+      <div class="muted sm">นักเรียน ${l.students} คน • กรอกแล้ว ${l.filled}/${l.total} ช่อง</div></button>`;
+  }).join('');
+  const empty = S.role === 'admin'
+    ? `<div class="card empty"><b>ยังไม่มีระดับชั้น</b>ไปที่แท็บ “นักเรียน” แล้วนำเข้ารายชื่อและเกรดจากไฟล์ Excel</div>`
+    : `<div class="card empty"><b>ยังไม่มีชั้นเรียนที่รับผิดชอบ</b>ติดต่อผู้ดูแลระบบเพื่อกำหนดชั้นเรียนให้คุณ</div>`;
+  staffShell(`<h1 class="h-title">เลือกระดับชั้น</h1><p class="muted" style="margin:0 0 14px">ปีการศึกษา ${esc(d.term)}</p><div class="stack">${cards || empty}</div>`, 'home');
+  $$('.lv').forEach(b => b.onclick = () => openGrid(b.dataset.l));
+}
+
+/* ---------- หน้ากรอกเกรด ---------- */
+let G = null;
+const gk = (s, b) => s + '|' + b;
+
+async function openGrid(level) {
+  app.innerHTML = topbar() + `<main class="main">${spin}</main>`; bindOut();
+  let d;
+  try { d = await api('gradeSheet', { level }); } catch (e) { toast(e.message, 'err'); return renderHome(); }
+  G = { level, d, vals: new Map(Object.entries(d.grades)), dirty: new Map(), saving: false, again: false, timer: null, locked: d.status === 'approved', cells: [], cur: null };
+  renderGrid();
+}
+
+function renderGrid() {
+  const { subjects: sb, students: st } = G.d, locked = G.locked;
+  const head = `<tr><th class="c-name">นักเรียน</th>${sb.map(s => `<th><span class="sn">${esc(s.name)}</span><span class="sc">${num(s.credit)} นก.${s.count_gpa ? '' : ' ไม่นับ'}</span></th>`).join('')}<th class="c-gpa">GPA</th></tr>`;
+  const rows = st.map((s, r) => `<tr><td class="c-name"><span class="no">${esc(s.no)}</span><span class="nm">${esc(shortPrefix(s.prefix))}${esc(s.first)} ${esc(s.last)}</span></td>
+    ${sb.map((b, c) => {
+      const v = G.vals.get(gk(s.student_id, b.id));
+      return locked ? `<td class="gv ${v === 0 ? 'v0' : ''}">${v == null ? '' : num(v)}</td>`
+        : `<td><input class="gc ${v === 0 ? 'v0' : ''}" data-r="${r}" data-c="${c}" value="${v == null ? '' : num(v)}" inputmode="${COARSE ? 'none' : 'decimal'}" enterkeyhint="next" autocomplete="off" aria-label="${esc(s.first)} ${esc(b.name)}"></td>`;
+    }).join('')}<td class="c-gpa" id="gpa-${esc(s.student_id)}"></td></tr>`).join('');
+  const isAdmin = S.role === 'admin';
+  app.innerHTML = `<div class="gp">
+    <header class="gtop"><button class="ic" id="gBack" aria-label="กลับ">${ICON.back}</button>
+      <div class="grow"><h2>${esc(G.level)}</h2><div class="muted sm">ปีการศึกษา ${esc(G.d.term)}</div></div>
+      <span class="pill ${locked ? 'ok' : ''}">${locked ? 'อนุมัติแล้ว' : 'กำลังกรอก'}</span></header>
+    ${locked ? `<div class="banner">อนุมัติโดย ${esc(G.d.approved_by)} เมื่อ ${esc(when(G.d.approved_at))}${isAdmin ? '' : ' — แก้ไขไม่ได้'}</div>` : ''}
+    ${st.length && sb.length ? `<div class="gwrap"><table class="grid"><thead>${head}</thead><tbody>${rows}</tbody></table></div>`
+      : `<div class="gwrap"><div class="empty"><b>ยังไม่มี${st.length ? 'รายวิชา' : 'นักเรียน'}ในชั้นนี้</b>ให้ผู้ดูแลระบบเพิ่มข้อมูลก่อน</div></div>`}
+    <footer class="gfoot"><div class="st"><b id="gProg"></b><span id="gState"></span></div>
+      ${locked ? (isAdmin ? '<button class="btn ghost sm" id="gUn">ยกเลิกการอนุมัติ</button>' : '')
+        : '<button class="btn ghost sm" id="gSave">บันทึก</button><button class="btn sm" id="gApr">อนุมัติเกรด</button>'}</footer></div>`;
+  G.cells = [];
+  $$('.gc').forEach(el => { (G.cells[+el.dataset.r] ||= [])[+el.dataset.c] = el; });
+  st.forEach(s => updGpa(s.student_id)); updProg(); setState(locked ? '' : 'บันทึกอัตโนมัติ');
+  $('#gBack').onclick = leaveGrid;
+  if ($('#gSave')) { $('#gSave').onclick = () => flush(true); $('#gApr').onclick = approveGrid; }
+  if ($('#gUn')) $('#gUn').onclick = unapproveGrid;
+  bindGrid();
+}
+
+function bindGrid() {
+  const wrap = $('.gwrap'); if (!wrap || G.locked) return;
+  wrap.addEventListener('focusin', e => { if (e.target.classList.contains('gc')) { G.cur = e.target; e.target.select(); if (COARSE) showKp(e.target); } });
+  wrap.addEventListener('focusout', e => {
+    if (!e.target.classList.contains('gc')) return;
+    commit(e.target);
+    setTimeout(() => { const a = document.activeElement; if (!a || (!a.classList?.contains('gc') && !a.closest?.('#kp'))) hideKp(); }, 60);
+  });
+  wrap.addEventListener('input', e => {
+    const el = e.target; if (!el.classList.contains('gc')) return;
+    let v = el.value.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+    if ({ '15': '1.5', '25': '2.5', '35': '3.5' }[v]) v = { '15': '1.5', '25': '2.5', '35': '3.5' }[v];   // พิมพ์ลัด: 15 → 1.5
+    el.value = v;
+    if (['0', '4', '1.5', '2.5', '3.5'].includes(v)) { commit(el); moveNext(el); }
+  });
+  wrap.addEventListener('keydown', e => {
+    const el = e.target; if (!el.classList.contains('gc')) return;
+    const r = +el.dataset.r, c = +el.dataset.c;
+    const go = (dr, dc) => { e.preventDefault(); commit(el); focusCell(r + dr, c + dc); };
+    if (e.key === 'Enter') go(e.shiftKey ? -1 : 1, 0);
+    else if (e.key === 'ArrowDown') go(1, 0); else if (e.key === 'ArrowUp') go(-1, 0);
+    else if (e.key === 'ArrowRight') go(0, 1); else if (e.key === 'ArrowLeft') go(0, -1);
+  });
+  wrap.addEventListener('paste', e => {
+    const el = e.target; if (!el.classList.contains('gc')) return;
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (!/[\t\n]/.test(text.trim())) return;   // ข้อความเดี่ยวให้พิมพ์ตามปกติ
+    e.preventDefault();
+    const r0 = +el.dataset.r, c0 = +el.dataset.c; let bad = 0, n = 0;
+    text.replace(/\r/g, '').split('\n').filter((l, i, a) => l !== '' || i < a.length - 1).forEach((line, i) => {
+      line.split('\t').forEach((cell, j) => {
+        const t = G.cells[r0 + i]?.[c0 + j]; if (!t) return;
+        const v = cell.trim().replace(',', '.');
+        if (v === '' ) return;
+        if (isGrade(v)) { t.value = num(v); commit(t); n++; } else bad++;
       });
-    };
-
-    $('loadRoomBtn').onclick = () => {
-      if (!canLeaveClass()) return;
-
-      run(async () => {
-        const room = $('roomSelect').value;
-        if (!room) throw new Error('ยังไม่มีห้องให้เลือก');
-
-        currentClass = await api('classGet', { room });
-        dirty = false;
-        renderClass();
-      });
-    };
-
-    // จัดการเหตุการณ์เมื่อเปลี่ยนเกรดในตารางเมทริกซ์รวม
-    $('gradeBody').onchange = event => {
-      const select = event.target.closest('select[data-row]');
-      if (!select || !currentClass || currentClass.locked) return;
-
-      const row = Number(select.dataset.row);
-      const col = Number(select.dataset.col);
-      currentClass.students[row].values[col] = select.value;
-      dirty = true;
-      updateCompleteness();
-
-      const filled = currentClass.students.reduce(
-        (sum, s) => sum + s.values.filter(v => v !== '').length, 0
-      );
-
-      $('gradeCount').textContent = `${filled} / ${currentClass.students.length * meta.subjects.length}`;
-      $('dirtyLabel').textContent = 'มีการแก้ไขที่ยังไม่บันทึก';
-      $('publishBtn').disabled = true;
-    };
-
-    $('saveBtn').onclick = () => run(async () => {
-      await mutateClass('classSave', {
-        rows: currentClass.students.map(s => ({ id: s.id, values: s.values }))
-      });
-      notify('บันทึกเกรดฉบับร่างทั้งหมดเรียบร้อยแล้ว');
     });
+    toast(bad ? `วางแล้ว ${n} ช่อง ข้าม ${bad} ช่องที่ไม่ใช่เกรด` : `วางแล้ว ${n} ช่อง`, bad ? '' : 'ok');
+  });
+}
 
-    $('publishBtn').onclick = () => {
-      if (!currentClass || dirty) return;
-      if (!confirm('ประกาศผลทั้งห้อง ' + currentClass.room + ' ให้นักเรียนเห็นหรือไม่?')) return;
+function focusCell(r, c) {
+  const rows = G.cells.length, cols = G.d.subjects.length;
+  if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+  const el = G.cells[r]?.[c]; if (!el) return;
+  el.focus({ preventScroll: true });
+  el.scrollIntoView({ block: 'center', inline: 'center', behavior: COARSE ? 'auto' : 'smooth' });
+}
+function moveNext(el) {
+  const r = +el.dataset.r, c = +el.dataset.c, cols = G.d.subjects.length;
+  if (c + 1 < cols) focusCell(r, c + 1); else if (r + 1 < G.cells.length) focusCell(r + 1, 0); else { el.blur(); hideKp(); }
+}
 
-      run(async () => {
-        await mutateClass('classPublish');
-        notify('อนุมัติและประกาศผลแล้ว');
+/** ยืนยันค่าที่พิมพ์ในช่อง → อัปเดตข้อมูล, GPA, ความคืบหน้า, ตั้งเวลาบันทึกอัตโนมัติ */
+function commit(el) {
+  if (!G || G.locked || !el.isConnected) return;
+  const sid = G.d.students[+el.dataset.r].student_id, bid = G.d.subjects[+el.dataset.c].id, key = gk(sid, bid);
+  const raw = el.value.trim(), prev = G.vals.get(key);
+  let v;
+  if (raw === '') v = '';
+  else if (isGrade(raw)) v = Number(raw);
+  else {
+    el.value = prev == null ? '' : num(prev); el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 300);
+    toast('ใช้ได้เฉพาะ 0, 1, 1.5, 2, 2.5, 3, 3.5, 4', 'err'); return;
+  }
+  el.value = v === '' ? '' : num(v);
+  const same = (v === '' && prev == null) || v === prev;
+  el.classList.toggle('v0', v === 0); if (v !== '') el.classList.remove('miss');
+  if (same) return;
+  if (v === '') G.vals.delete(key); else G.vals.set(key, v);
+  G.dirty.set(key, v);
+  updGpa(sid); updProg(); setState('มีการแก้ไข…', 'wait');
+  clearTimeout(G.timer); G.timer = setTimeout(() => flush(false), 3500);
+}
+function updGpa(sid) {
+  const cell = document.getElementById('gpa-' + sid); if (!cell || !G) return;
+  const g = calcGpa(G.d.subjects, b => G.vals.get(gk(sid, b.id)));
+  cell.textContent = g == null ? '–' : g.toFixed(2);
+}
+function filledCount() { let n = 0; G.d.students.forEach(s => G.d.subjects.forEach(b => { if (G.vals.has(gk(s.student_id, b.id))) n++; })); return n; }
+function updProg() { const t = G.d.students.length * G.d.subjects.length; const p = $('#gProg'); if (p) p.textContent = `กรอกแล้ว ${filledCount()}/${t} ช่อง`; }
+function setState(msg, cls = '') { const s = $('#gState'); if (s) { s.textContent = msg; s.className = cls ? 's-' + cls : ''; } }
+
+async function flush(manual) {
+  if (!G || G.locked) return true;
+  clearTimeout(G.timer);
+  if (G.saving) {   // กำลังบันทึกอยู่ ให้รอรอบนั้นจบก่อน
+    G.again = true;
+    while (G && G.saving) await new Promise(r => setTimeout(r, 100));
+    return G ? G.dirty.size === 0 : true;
+  }
+  if (!G.dirty.size) { if (manual) toast('บันทึกแล้ว', 'ok'); setState('บันทึกแล้ว', 'ok'); return true; }
+  G.saving = true; setState('กำลังบันทึก…', 'wait');
+  const snap = [...G.dirty];
+  try {
+    await api('saveGrades', { level: G.level, changes: snap.map(([k, v]) => { const i = k.indexOf('|'); return [k.slice(0, i), k.slice(i + 1), v]; }) });
+    snap.forEach(([k, v]) => { if (G && G.dirty.get(k) === v) G.dirty.delete(k); });
+    setState('บันทึกแล้ว', 'ok'); if (manual) toast('บันทึกแล้ว', 'ok');
+  } catch (e) {
+    if (G) { G.saving = false; setState('บันทึกไม่สำเร็จ — ' + e.message, 'err'); }
+    if (manual) toast(e.message, 'err'); return false;
+  }
+  G.saving = false;
+  if (G.again || G.dirty.size) { G.again = false; return flush(manual); }
+  return true;
+}
+window.addEventListener('beforeunload', e => { if (G && G.dirty.size) { e.preventDefault(); e.returnValue = ''; } });
+
+async function leaveGrid() {
+  if (G && G.dirty.size) { const ok = await flush(true); if (!ok && !(await confirmBox('บันทึกไม่สำเร็จ ออกโดยไม่บันทึกหรือไม่?', 'ออกเลย', true))) return; }
+  G = null; hideKp(); renderHome();
+}
+
+async function approveGrid() {
+  const { students: st, subjects: sb } = G.d;
+  const missing = [];
+  st.forEach((s, r) => sb.forEach((b, c) => { if (!G.vals.has(gk(s.student_id, b.id))) missing.push(G.cells[r][c]); }));
+  if (missing.length) {
+    missing.forEach(el => el.classList.add('miss'));
+    focusCell(+missing[0].dataset.r, +missing[0].dataset.c);
+    return toast(`ยังกรอกไม่ครบ เหลืออีก ${missing.length} ช่อง (ช่องสีเหลือง)`, 'err');
+  }
+  if (!(await flush(true))) return;
+  if (!(await confirmBox(`อนุมัติเกรด ${G.level} (${st.length} คน)? หลังอนุมัติจะแก้ไขไม่ได้ และนักเรียนจะเห็นผลการเรียนทันที`, 'อนุมัติเกรด', false, 'อนุมัติเกรดรายชั้น'))) return;
+  try { await api('approve', { level: G.level }); toast('อนุมัติเกรดแล้ว', 'ok'); hideKp(); openGrid(G.level); }
+  catch (e) { toast(e.message, 'err'); }
+}
+async function unapproveGrid() {
+  if (!(await confirmBox(`ยกเลิกการอนุมัติ ${G.level}? นักเรียนจะมองไม่เห็นผลการเรียนจนกว่าจะอนุมัติอีกครั้ง`, 'ยกเลิกการอนุมัติ', true))) return;
+  try { await api('unapprove', { level: G.level }); toast('ยกเลิกการอนุมัติแล้ว', 'ok'); openGrid(G.level); }
+  catch (e) { toast(e.message, 'err'); }
+}
+
+/* ---------- แป้นกรอกเกรด (มือถือ) ---------- */
+function showKp(el) {
+  const s = G.d.students[+el.dataset.r], b = G.d.subjects[+el.dataset.c];
+  $('#kpl').textContent = `${shortPrefix(s.prefix)}${s.first} — ${b.name}`;
+  $('#kp').hidden = false; document.body.classList.add('kp-open');
+  setTimeout(() => el.scrollIntoView({ block: 'center', inline: 'center' }), 30);
+}
+function hideKp() { $('#kp').hidden = true; document.body.classList.remove('kp-open'); }
+$('#kp').addEventListener('pointerdown', e => e.preventDefault());   // ไม่ให้ช่องกรอกเสียโฟกัส
+$('#kp').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || !G || !G.cur) return;
+  const el = G.cur;
+  if (b.dataset.done) { el.blur(); hideKp(); return; }
+  if (b.dataset.next) { commit(el); moveNext(el); return; }
+  el.value = b.dataset.v; commit(el);
+  if (b.dataset.v !== '') moveNext(el);
+});
+
+/* ============================== แอดมิน ============================== */
+function adminGo(tab) {
+  if (G) { G = null; }
+  ADM.tab = tab;
+  ({ home: renderHome, students: renderStudents, subjects: renderSubjects, users: renderUsers, settings: renderSettings })[tab]();
+}
+async function ensureLevels() {
+  if (!S.allLevels.length) { try { S.allLevels = (await api('levelsOverview')).levels.map(l => l.level); } catch (e) {} }
+  if (!ADM.level || !S.allLevels.includes(ADM.level)) ADM.level = S.allLevels[0] || '';
+}
+const levelSel = (id = 'lvSel') => `<select class="sel" id="${id}" aria-label="ระดับชั้น">${S.allLevels.map(l => `<option ${l === ADM.level ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+
+/* ----- นักเรียน ----- */
+async function renderStudents() {
+  staffShell(spin, 'students', true); await ensureLevels();
+  let list = [];
+  if (ADM.level) { try { list = await api('listStudents', { level: ADM.level }); } catch (e) { toast(e.message, 'err'); } }
+  const rows = list.map(s => `<div class="li"><div class="av">${esc(s.no || '•')}</div><div class="grow"><b>${esc(stuName(s))}</b><div class="muted sm">รหัส ${esc(s.student_id)}</div></div>
+    <button class="ic" data-e="${esc(s.student_id)}" aria-label="แก้ไข">${ICON.edit}</button><button class="ic" data-d="${esc(s.student_id)}" aria-label="ลบ">${ICON.trash}</button></div>`).join('');
+  staffShell(`<h1 class="h-title">นักเรียน</h1>
+    <div class="toolbar">${S.allLevels.length ? levelSel() : ''}<button class="btn sm" id="bAdd">${ICON.plus}เพิ่ม</button><button class="btn ghost sm" id="bImp">${ICON.up}นำเข้าจาก Excel</button></div>
+    <div class="card">${rows || `<div class="empty"><b>ยังไม่มีนักเรียน${ADM.level ? 'ในชั้นนี้' : ''}</b>เริ่มจากการนำเข้าไฟล์ Excel รายงานผลการเรียน</div>`}</div>`, 'students', true);
+  if ($('#lvSel')) $('#lvSel').onchange = e => { ADM.level = e.target.value; renderStudents(); };
+  $('#bImp').onclick = openImport;
+  $('#bAdd').onclick = () => studentForm(null);
+  $$('[data-e]').forEach(b => b.onclick = () => studentForm(list.find(s => s.student_id === b.dataset.e)));
+  $$('[data-d]').forEach(b => b.onclick = async () => {
+    const s = list.find(x => x.student_id === b.dataset.d);
+    if (await confirmBox(`ลบ ${stuName(s)} ออกจากระบบ? (ประวัติเกรดเดิมยังเก็บไว้ในชีต)`, 'ลบ', true)) {
+      try { await api('deleteStudent', { student_id: s.student_id }); toast('ลบแล้ว', 'ok'); renderStudents(); } catch (e) { toast(e.message, 'err'); }
+    }
+  });
+}
+function studentForm(s) {
+  const isNew = !s;
+  modal({
+    title: isNew ? 'เพิ่มนักเรียน' : 'แก้ไขนักเรียน',
+    body: `<div class="fld"><label class="f">ระดับชั้น</label><select class="sel" id="fLv">${S.allLevels.map(l => `<option ${l === (s?.level || ADM.level) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>
+      <div class="two fld"><div><label class="f">คำนำหน้า</label><input class="inp" id="fPre" list="pre" value="${esc(s?.prefix || '')}"><datalist id="pre"><option>เด็กชาย<option>เด็กหญิง<option>นาย<option>นางสาว</datalist></div>
+        <div><label class="f">เลขที่</label><input class="inp" id="fNo" type="number" inputmode="numeric" min="1" value="${esc(s?.no ?? '')}"></div></div>
+      <div class="two fld"><div><label class="f">ชื่อ</label><input class="inp" id="fFirst" value="${esc(s?.first || '')}"></div><div><label class="f">สกุล</label><input class="inp" id="fLast" value="${esc(s?.last || '')}"></div></div>
+      <div class="fld"><label class="f">เลขประจำตัวนักเรียน</label><input class="inp" id="fSid" inputmode="numeric" value="${esc(s?.student_id || '')}" ${isNew ? '' : 'disabled'}></div>
+      <div class="fld"><label class="f">เลขบัตรประชาชน 13 หลัก</label><input class="inp" id="fNid" inputmode="numeric" maxlength="13" placeholder="${isNew ? '' : 'เว้นว่างถ้าไม่เปลี่ยน'}" autocomplete="off">
+        <div class="hint">ระบบเก็บเป็นรหัสลับ ไม่เก็บเลขจริงไว้ในชีต</div></div>`,
+    actions: [{ label: 'ยกเลิก', cls: 'ghost' }, {
+      label: 'บันทึก', fn: async () => {
+        await api('saveStudent', { is_new: isNew, level: $('#fLv').value, prefix: $('#fPre').value, no: $('#fNo').value, first: $('#fFirst').value, last: $('#fLast').value, student_id: $('#fSid').value, nid: $('#fNid').value });
+        ADM.level = $('#fLv').value; toast('บันทึกแล้ว', 'ok'); renderStudents();
+      }
+    }]
+  });
+}
+
+/* ----- นำเข้าจาก Excel ----- */
+async function loadXLSX() {
+  if (window.XLSX) return;
+  await new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+    s.onload = res; s.onerror = () => rej(new Error('โหลดตัวอ่านไฟล์ Excel ไม่ได้ ตรวจสอบอินเทอร์เน็ต')); document.head.appendChild(s);
+  });
+}
+function parseWorkbook(buf) {
+  const wb = XLSX.read(buf, { type: 'array' }), out = [];
+  wb.SheetNames.forEach(name => {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: true, defval: '' });
+    const hi = rows.findIndex(r => r.some(c => String(c).includes('เลขประจำตัวประชาชน')));
+    if (hi < 0) return;
+    const H = rows[hi].map(c => String(c).trim()), col = t => H.findIndex(h => h.includes(t));
+    const cNo = col('เลขที่'), cSid = col('เลขประจำตัวนักเรียน'), cNid = col('เลขประจำตัวประชาชน'), cName = col('ชื่อ');
+    if (cSid < 0 || cNid < 0 || cName < 0) return;
+    const subj = []; for (let j = cName + 3; j < H.length; j++) if (H[j] && !/เฉลี่ย|GPA/i.test(H[j])) subj.push({ j, name: H[j] });
+    const o = { level: name.trim(), students: [], subjects: subj.map(s => s.name), grades: [], warnings: [] };
+    rows.slice(hi + 1).forEach((r, i) => {
+      let prefix = String(r[cName]).trim(), first = String(r[cName + 1]).trim(), last = String(r[cName + 2]).trim();
+      const sid = String(r[cSid]).trim(), nid = String(r[cNid]).replace(/\D/g, '');
+      if (!sid && !nid && !first && !prefix) return;
+      if (!first && prefix) { const m = prefix.match(/^(เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.|นางสาว|นาง|นาย)?\s*(\S+)\s+(.+)$/); if (m) { prefix = m[1] || ''; first = m[2]; last = m[3]; } }
+      const no = cNo >= 0 ? Number(r[cNo]) || '' : o.students.length + 1;
+      if (nid && !nidOk(nid)) o.warnings.push(`เลขที่ ${no || i + 1}: เลขบัตรประชาชนไม่ผ่านการตรวจเลขหลักสุดท้าย (อาจพิมพ์ผิด)`);
+      o.students.push({ no, student_id: sid, nid, prefix, first, last });
+      subj.forEach(s => {
+        const v = r[s.j]; if (v === '' || v == null) return;
+        const n = Number(String(v).replace(',', '.'));
+        if (isGrade(n)) o.grades.push([sid, s.name, n]); else o.warnings.push(`เลขที่ ${no || i + 1} วิชา ${s.name}: เกรด "${v}" ไม่ถูกต้อง (ข้ามช่องนี้)`);
       });
-    };
-
-    $('unpublishBtn').onclick = () => {
-      if (!currentClass) return;
-      const reason = prompt('ระบุเหตุผลที่ยกเลิกอนุมัติ');
-      if (!reason || !reason.trim()) return;
-
-      run(async () => {
-        await mutateClass('classUnpublish', { reason: reason.trim() });
-        notify('ยกเลิกอนุมัติแล้ว สามารถแก้ไขเกรดได้');
-      });
-    };
-
-    $('studentTemplateBtn').onclick = () => run(async () => {
-      downloadWorkbook('students', [
-        ['student_code', 'national_id', 'full_name', 'class_level', 'room'],
-        ['S0001', '', 'นักเรียนตัวอย่าง (ข้อมูลสมมติ)', 'ป.1', '1']
-      ], 'student-template-2569.xlsx');
-
-      notify('กรอกเลขบัตร 13 หลักเป็นข้อความ และแทนข้อมูลตัวอย่างก่อนนำเข้า');
     });
+    if (o.students.length) out.push(o);
+  });
+  return out;
+}
 
-    $('gradeTemplateBtn').onclick = () => run(async () => {
-      if (!currentClass) throw new Error('กรุณาโหลดห้องก่อน');
-
-      downloadWorkbook('grades', [
-        ['student_code', ...meta.subjects.map(s => s.name)],
-        ...currentClass.students.map(s => [
-          s.student_code, ...meta.subjects.map(() => '')
-        ])
-      ], 'grade-template-1-2569.xlsx');
-    });
-
-    $('studentImportBtn').onclick = () => $('studentFile').click();
-    $('gradeImportBtn').onclick = () => $('gradeFile').click();
-
-    $('studentFile').onchange = event => {
-      const file = event.target.files[0];
-      event.target.value = '';
-      if (!file) return;
-
-      run(async () => {
-        if (dirty) throw new Error('กรุณาบันทึกเกรดที่แก้ไขอยู่ก่อนนำเข้านักเรียน');
-
-        const rows = await readWorkbook(file, 'students', [
-          'student_code', 'national_id', 'full_name', 'class_level', 'room'
-        ]);
-
-        rows.forEach((r, i) => {
-          if (typeof r.national_id !== 'string' ||
-              !/^\d{13}$/.test(r.national_id.trim())) {
-            throw new Error(
-              `แถว ${i + 2}: ตั้งเลขบัตรเป็นข้อความ แล้วกรอกให้ครบ 13 หลัก`
-            );
-          }
-        });
-
-        if (!confirm(
-          `นำเข้านักเรียน ${rows.length} รายการหรือไม่?\n` +
-          'รหัสนักเรียนเดิมจะถูกปรับปรุงข้อมูล'
-        )) return;
-
-        const result = await api('studentsImport', { rows });
-        await loadStaff();
-        notify('นำเข้านักเรียนสำเร็จ ' + result.count + ' รายการ');
-      });
-    };
-
-    $('gradeFile').onchange = event => {
-      const file = event.target.files[0];
-      event.target.value = '';
-      if (!file) return;
-
-      run(async () => {
-        if (!currentClass || currentClass.locked) {
-          throw new Error('กรุณาโหลดห้องที่ยังไม่อนุมัติก่อน');
+function openImport() {
+  let sheets = [];
+  const m = modal({
+    title: 'นำเข้าจากไฟล์ Excel', wide: true,
+    body: `<p class="muted" style="margin:0 0 10px">เลือกไฟล์ .xlsx รูปแบบเดียวกับไฟล์รายงานผลการเรียน (ชื่อชีต = ระดับชั้น, แถวหัวตารางมี “เลขประจำตัวประชาชน” และชื่อรายวิชา)</p>
+      <input type="file" id="xf" accept=".xlsx,.xls" class="inp" style="padding-top:11px"><div id="xp"></div>
+      <p class="hint">ไฟล์ถูกอ่านในเบราว์เซอร์ของคุณ แล้วส่งไปยังสคริปต์ของโรงเรียนผ่าน HTTPS เลขบัตรจะถูกแปลงเป็นรหัสลับก่อนบันทึก</p>`,
+    actions: [{ label: 'ยกเลิก', cls: 'ghost' }, {
+      label: 'นำเข้า', fn: async () => {
+        if (!sheets.length) { toast('กรุณาเลือกไฟล์ก่อน', 'err'); return false; }
+        const results = [];
+        for (let i = 0; i < sheets.length; i++) {
+          const sh = sheets[i];
+          const subjects = sh.subjects.map((n, k) => ({ name: n, credit: $(`#cr_${i}_${k}`).value, count_gpa: $(`#cg_${i}_${k}`).checked }));
+          const bad = subjects.find(s => !(Number(s.credit) > 0));
+          if (bad) { toast(`ชั้น ${sh.level}: หน่วยกิตของวิชา ${bad.name} ต้องมากกว่า 0`, 'err'); return false; }
         }
-
-        const rows = await readWorkbook(file, 'grades', [
-          'student_code', ...meta.subjects.map(s => s.name)
-        ]);
-
-        const next = JSON.parse(JSON.stringify(currentClass));
-        const studentMap = new Map(next.students.map(s => [s.student_code, s]));
-        const seen = new Set();
-
-        rows.forEach(r => {
-          const code = String(r.student_code).trim();
-          if (seen.has(code)) throw new Error('รหัสนักเรียนซ้ำในไฟล์: ' + code);
-          seen.add(code);
-
-          const student = studentMap.get(code);
-          if (!student) throw new Error('รหัสนักเรียนไม่อยู่ในห้องนี้: ' + code);
-
-          const values = meta.subjects.map(s => String(r[s.name]).trim());
-          if (values.some(v => !meta.gradeOptions.includes(v))) {
-            throw new Error('มีเกรดไม่ถูกต้องของนักเรียนรหัส ' + code);
-          }
-
-          student.values = values;
-        });
-
-        if (!confirm(
-          `นำเข้าเกรด ${rows.length} คนในห้อง ${currentClass.room} หรือไม่?\n` +
-          'แทนค่าทุกวิชาของคนที่มีในไฟล์ รวมถึงช่องว่าง แต่ยังไม่บันทึกลงฐานข้อมูล'
-        )) return;
-
-        currentClass = next;
-        dirty = true;
-        updateCompleteness();
-        renderClass();
-        notify('ตรวจและนำเข้าหน้าจอแล้ว กรุณากดบันทึกร่างทั้งหมด');
-      });
-    };
-
-    $('accountsBtn').onclick = () => run(loadAccounts);
-
-    $('accountForm').onsubmit = event => {
-      event.preventDefault();
-
-      run(async () => {
-        const result = await api('accountCreate', {
-          username: $('newUsername').value,
-          role: $('newRole').value,
-          rooms: $('newRooms').value
-        });
-
-        showCredentials(result);
-        $('accountForm').reset();
-        await loadAccounts();
-      });
-    };
-
-    $('accountBody').onclick = event => {
-      const button = event.target.closest('button[data-account]');
-      if (!button) return;
-
-      const account = accountRows[Number(button.dataset.account)];
-      const action = button.dataset.action;
-
-      if (action === 'reset') {
-        if (!confirm('สร้างรหัสผ่านใหม่ให้ ' + account.username + ' หรือไม่?')) return;
-
-        run(async () => {
-          const data = await api('accountReset', { id: account.id });
-          showCredentials(data);
-          notify('รหัสเดิมและเซสชันเดิมของบัญชีนี้จะใช้งานไม่ได้');
-        });
+        const btn = $('.sh-f .btn:last-child'); 
+        for (let i = 0; i < sheets.length; i++) {
+          const sh = sheets[i];
+          if (btn) btn.textContent = `กำลังนำเข้า ${sh.level} (${i + 1}/${sheets.length})…`;
+          const subjects = sh.subjects.map((n, k) => ({ name: n, credit: Number($(`#cr_${i}_${k}`).value), count_gpa: $(`#cg_${i}_${k}`).checked }));
+          const withGrades = $(`#gr_${i}`).checked;
+          results.push([sh.level, await api('importStudents', { level: sh.level, students: sh.students, subjects, grades: withGrades ? sh.grades : [] })]);
+        }
+        S.allLevels = []; await ensureLevels();
+        ADM.level = sheets[0].level;
+        closeModal(); showImportResult(results); renderStudents(); return false;
       }
+    }]
+  });
+  $('#xf', m).onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    const box = $('#xp', m); box.innerHTML = '<div class="empty muted">กำลังอ่านไฟล์…</div>';
+    try {
+      await loadXLSX(); sheets = parseWorkbook(await f.arrayBuffer());
+      if (!sheets.length) { box.innerHTML = '<div class="warnl">ไม่พบข้อมูลนักเรียนในไฟล์ ตรวจว่าแถวหัวตารางมีคำว่า “เลขประจำตัวประชาชน”</div>'; return; }
+      const existing = {};
+      await Promise.all(sheets.map(async s => { try { (await api('listSubjects', { level: s.level })).forEach(x => existing[s.level + '|' + x.name] = x); } catch (e) {} }));
+      box.innerHTML = sheets.map((s, i) => `<div class="imp"><h3>${esc(s.level)}</h3>
+        <div class="muted sm">นักเรียน ${s.students.length} คน • ${s.subjects.length} วิชา • เกรดในไฟล์ ${s.grades.length} ช่อง</div>
+        ${s.warnings.length ? `<div class="warnl">${s.warnings.slice(0, 6).map(esc).join('<br>')}${s.warnings.length > 6 ? `<br>…และอีก ${s.warnings.length - 6} รายการ` : ''}</div>` : ''}
+        <label class="chk"><input type="checkbox" id="gr_${i}" ${s.grades.length ? 'checked' : ''} ${s.grades.length ? '' : 'disabled'}> นำเข้าเกรดจากไฟล์เป็นฉบับร่าง (ยังไม่อนุมัติ)</label>
+        <div class="row" style="margin:6px 0"><span class="sm grow"><b>หน่วยกิต</b> ตั้งให้ทุกวิชา</span><input class="inp" id="all_${i}" type="number" step="0.5" min="0.5" value="1" style="width:78px;height:40px;text-align:center"><button class="btn ghost sm" data-all="${i}">ใช้</button></div>
+        <div class="crow muted sm" style="border-top:0"><span>รายวิชา</span><span style="text-align:center">หน่วยกิต</span><span style="text-align:center">นับ GPA</span></div>
+        ${s.subjects.map((n, k) => { const ex = existing[s.level + '|' + n]; return `<div class="crow"><span>${esc(n)}</span><input class="inp" id="cr_${i}_${k}" type="number" step="0.5" min="0.5" value="${ex ? ex.credit : 1}"><label class="chk"><input type="checkbox" id="cg_${i}_${k}" ${ex ? (ex.count_gpa ? 'checked' : '') : 'checked'}></label></div>`; }).join('')}</div>`).join('');
+      $$('[data-all]', box).forEach(b => b.onclick = () => { const i = b.dataset.all; $$(`[id^="cr_${i}_"]`, box).forEach(x => x.value = $(`#all_${i}`).value); });
+    } catch (err) { box.innerHTML = `<div class="warnl">${esc(err.message)}</div>`; }
+  };
+}
+function showImportResult(results) {
+  modal({
+    title: 'นำเข้าเสร็จแล้ว', actions: [{ label: 'ตกลง' }],
+    body: results.map(([lv, r]) => `<div class="imp" style="margin-top:8px"><h3>${esc(lv)}</h3>
+      <div class="sm">เพิ่มใหม่ ${r.added} คน • อัปเดต ${r.updated} คน • เกรด ${r.grades} ช่อง</div>
+      ${r.grades_skipped ? `<div class="warnl">ข้ามการนำเข้าเกรด ${r.grades_skipped} ช่อง เพราะชั้นนี้อนุมัติแล้ว</div>` : ''}
+      ${r.skipped.length ? `<div class="warnl"><b>ข้าม ${r.skipped.length} รายการ</b><br>${r.skipped.slice(0, 8).map(esc).join('<br>')}</div>` : ''}</div>`).join('')
+  });
+}
 
-      if (action === 'toggle') {
-        if (!confirm('เปลี่ยนสถานะบัญชี ' + account.username + ' หรือไม่?')) return;
-
-        run(async () => {
-          await api('accountToggle', { id: account.id });
-          await loadAccounts();
-        });
+/* ----- วิชา ----- */
+async function renderSubjects() {
+  staffShell(spin, 'subjects', true); await ensureLevels();
+  let list = [];
+  if (ADM.level) { try { list = await api('listSubjects', { level: ADM.level }); } catch (e) { toast(e.message, 'err'); } }
+  const rows = list.map(s => `<div class="li"><div class="av">${esc(s.order)}</div><div class="grow"><b>${esc(s.name)}</b>${s.count_gpa ? '' : '<span class="tag">ไม่นับ GPA</span>'}</div>
+    <span class="tag o">${num(s.credit)} หน่วยกิต</span><button class="ic" data-e="${esc(s.id)}" aria-label="แก้ไข">${ICON.edit}</button><button class="ic" data-d="${esc(s.id)}" aria-label="ลบ">${ICON.trash}</button></div>`).join('');
+  staffShell(`<h1 class="h-title">วิชาและหน่วยกิต</h1>
+    <div class="toolbar">${S.allLevels.length ? levelSel() : ''}<button class="btn sm" id="bAdd" ${S.allLevels.length ? '' : 'disabled'}>${ICON.plus}เพิ่มวิชา</button><button class="btn ghost sm" id="bCopy" ${S.allLevels.length > 1 ? '' : 'disabled'}>คัดลอกจากชั้นอื่น</button></div>
+    <div class="card">${rows || `<div class="empty"><b>${ADM.level ? 'ยังไม่มีรายวิชาในชั้นนี้' : 'ยังไม่มีระดับชั้น'}</b>${ADM.level ? 'กด “เพิ่มวิชา” หรือคัดลอกจากชั้นอื่น' : 'เพิ่มระดับชั้นที่แท็บ “ตั้งค่า” หรือนำเข้านักเรียนจาก Excel'}</div>`}</div>`, 'subjects', true);
+  if ($('#lvSel')) $('#lvSel').onchange = e => { ADM.level = e.target.value; renderSubjects(); };
+  $('#bAdd').onclick = () => subjectForm(null);
+  $('#bCopy').onclick = () => {
+    const others = S.allLevels.filter(l => l !== ADM.level);
+    modal({ title: `คัดลอกวิชามาที่ ${ADM.level}`, body: `<label class="f">คัดลอกจากชั้น</label><select class="sel" id="cpf">${others.map(l => `<option>${esc(l)}</option>`).join('')}</select><p class="hint">คัดลอกเฉพาะวิชาที่ยังไม่มีชื่อซ้ำในชั้นนี้ พร้อมหน่วยกิต</p>`,
+      actions: [{ label: 'ยกเลิก', cls: 'ghost' }, { label: 'คัดลอก', fn: async () => { const r = await api('copySubjects', { from: $('#cpf').value, to: ADM.level }); toast(`คัดลอก ${r.copied} วิชา`, 'ok'); renderSubjects(); } }] });
+  };
+  $$('[data-e]').forEach(b => b.onclick = () => subjectForm(list.find(s => s.id === b.dataset.e)));
+  $$('[data-d]').forEach(b => b.onclick = async () => {
+    const s = list.find(x => x.id === b.dataset.d);
+    if (await confirmBox(`ลบวิชา ${s.name}? (เกรดเดิมที่เคยบันทึกยังเก็บไว้)`, 'ลบ', true)) {
+      try { await api('deleteSubject', { id: s.id }); toast('ลบแล้ว', 'ok'); renderSubjects(); } catch (e) { toast(e.message, 'err'); }
+    }
+  });
+}
+function subjectForm(s) {
+  modal({
+    title: s ? 'แก้ไขวิชา' : 'เพิ่มวิชา',
+    body: `<div class="fld"><label class="f">ชื่อวิชา</label><input class="inp" id="fName" value="${esc(s?.name || '')}"></div>
+      <div class="two fld"><div><label class="f">หน่วยกิต</label><input class="inp" id="fCr" type="number" inputmode="decimal" step="0.5" min="0.5" value="${s ? num(s.credit) : 1}"></div>
+        <div><label class="f">ลำดับในตาราง</label><input class="inp" id="fOrd" type="number" inputmode="numeric" value="${s ? esc(s.order) : ''}" placeholder="ต่อท้าย"></div></div>
+      <label class="chk"><input type="checkbox" id="fGpa" ${s && !s.count_gpa ? '' : 'checked'}> นับรวมในเกรดเฉลี่ย (GPA)</label>
+      ${s ? '<div class="hint">หากเปลี่ยนหน่วยกิตหลังอนุมัติเกรดไปแล้ว GPA ของนักเรียนจะถูกคำนวณใหม่ด้วยค่าที่แก้</div>' : ''}`,
+    actions: [{ label: 'ยกเลิก', cls: 'ghost' }, {
+      label: 'บันทึก', fn: async () => {
+        await api('saveSubject', { id: s?.id, level: ADM.level, name: $('#fName').value, credit: $('#fCr').value, order: $('#fOrd').value, count_gpa: $('#fGpa').checked });
+        toast('บันทึกแล้ว', 'ok'); renderSubjects();
       }
+    }]
+  });
+}
 
-      if (action === 'rooms') {
-        const rooms = prompt('ห้องที่รับผิดชอบ เช่น ป.1/1,ป.1/2', account.assigned_rooms);
-        if (!rooms) return;
-
-        run(async () => {
-          await api('accountRooms', { id: account.id, rooms });
-          await loadAccounts();
-        });
+/* ----- ผู้ใช้ ----- */
+async function renderUsers() {
+  staffShell(spin, 'users', true); await ensureLevels();
+  let list = [];
+  try { list = await api('listUsers'); } catch (e) { toast(e.message, 'err'); }
+  const rows = list.map(u => `<div class="li" ${u.active ? '' : 'style="opacity:.55"'}><div class="av">${esc(u.name.charAt(0))}</div>
+    <div class="grow"><b>${esc(u.name)}</b>${u.active ? '' : '<span class="tag">ปิดใช้งาน</span>'}<div class="muted sm">${esc(u.username)} • ${u.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ครู: ' + (u.levels.length ? esc(u.levels.join(', ')) : 'ยังไม่กำหนดชั้น')}</div></div>
+    <button class="ic" data-e="${esc(u.username)}" aria-label="แก้ไข">${ICON.edit}</button></div>`).join('');
+  staffShell(`<h1 class="h-title">ผู้ใช้งาน</h1><div class="toolbar"><button class="btn sm" id="bAdd">${ICON.plus}เพิ่มผู้ใช้</button></div><div class="card">${rows}</div>`, 'users', true);
+  $('#bAdd').onclick = () => userForm(null);
+  $$('[data-e]').forEach(b => b.onclick = () => userForm(list.find(u => u.username === b.dataset.e)));
+}
+function userForm(u) {
+  const isNew = !u;
+  const m = modal({
+    title: isNew ? 'เพิ่มผู้ใช้' : 'แก้ไขผู้ใช้',
+    body: `<div class="fld"><label class="f">ชื่อ-สกุล</label><input class="inp" id="uName" value="${esc(u?.name || '')}"></div>
+      <div class="two fld"><div><label class="f">ชื่อผู้ใช้</label><input class="inp" id="uUn" autocapitalize="none" value="${esc(u?.username || '')}" ${isNew ? '' : 'disabled'}></div>
+        <div><label class="f">สิทธิ์</label><select class="sel" id="uRole"><option value="teacher" ${u?.role === 'admin' ? '' : 'selected'}>ครู</option><option value="admin" ${u?.role === 'admin' ? 'selected' : ''}>ผู้ดูแลระบบ</option></select></div></div>
+      <div class="fld"><label class="f">รหัสผ่าน</label><input class="inp" id="uPw" type="password" autocomplete="new-password" placeholder="${isNew ? 'อย่างน้อย 6 ตัวอักษร' : 'เว้นว่างถ้าไม่เปลี่ยน'}"></div>
+      <div class="fld" id="uLvBox"><label class="f">ชั้นที่รับผิดชอบ</label>${S.allLevels.length ? S.allLevels.map(l => `<label class="chk"><input type="checkbox" name="uLv" value="${esc(l)}" ${u?.levels.includes(l) || u?.levels.includes('*') ? 'checked' : ''}> ${esc(l)}</label>`).join('') : '<div class="hint">ยังไม่มีระดับชั้น</div>'}</div>
+      <label class="chk"><input type="checkbox" id="uAct" ${u && !u.active ? '' : 'checked'}> เปิดใช้งานบัญชีนี้</label>`,
+    actions: [...(isNew ? [] : [{ label: 'ลบผู้ใช้', cls: 'danger', fn: async () => {
+        if (!(await confirmBox(`ลบผู้ใช้ ${u.name}?`, 'ลบ', true))) return false;
+        await api('deleteUser', { username: u.username }); toast('ลบแล้ว', 'ok'); renderUsers();
+      } }]), { label: 'ยกเลิก', cls: 'ghost' }, {
+      label: 'บันทึก', fn: async () => {
+        await api('saveUser', { username: isNew ? $('#uUn').value : u.username, name: $('#uName').value, role: $('#uRole').value, password: $('#uPw').value, active: $('#uAct').checked, levels: $$('[name=uLv]:checked').map(x => x.value) });
+        toast('บันทึกแล้ว', 'ok'); renderUsers();
       }
+    }]
+  });
+  const sync = () => { $('#uLvBox', m).hidden = $('#uRole', m).value === 'admin'; };
+  $('#uRole', m).onchange = sync; sync();
+}
+
+/* ----- ตั้งค่า ----- */
+async function renderSettings() {
+  staffShell(spin, 'settings', true); await ensureLevels();
+  let c; try { c = await api('getSettings'); } catch (e) { return toast(e.message, 'err'); }
+  let logoData = '', removeLogo = false;
+  staffShell(`<h1 class="h-title">ตั้งค่าโรงเรียน</h1>
+    <div class="card stack">
+      <div class="fld"><label class="f">ชื่อโรงเรียน</label><input class="inp" id="sName" value="${esc(c.school_name)}"></div>
+      <div class="two fld"><div><label class="f">ปีการศึกษา (ภาคเรียน)</label><input class="inp" id="sTerm" value="${esc(c.term)}" placeholder="2569"></div>
+        <div><label class="f">ชื่อผู้อำนวยการ (พิมพ์ในใบรายงาน)</label><input class="inp" id="sDir" value="${esc(c.director_name)}"></div></div>
+      <div class="hint">เมื่อเปลี่ยนปีการศึกษา ครูจะเริ่มกรอกเกรดชุดใหม่ ส่วนเกรดเดิมที่อนุมัติแล้วนักเรียนยังดูย้อนหลังได้</div>
+      <div class="fld"><label class="f">โลโก้โรงเรียน</label>
+        <div class="row"><span class="logo" id="lgPrev" style="width:64px;height:64px;border-radius:16px">${c.logo_url ? `<img src="${esc(c.logo_url)}" alt="" referrerpolicy="no-referrer">` : esc(c.school_name.charAt(0))}</span>
+          <label class="btn ghost sm" style="cursor:pointer">${ICON.up}เลือกรูป<input type="file" id="lgFile" accept="image/png,image/jpeg,image/webp" hidden></label>
+          <button class="btn ghost sm" id="lgDel" ${c.logo_url ? '' : 'disabled'}>ลบโลโก้</button></div></div>
+      <button class="btn block" id="sSave">บันทึกการตั้งค่า</button></div>
+    <div class="card stack" style="margin-top:14px"><h3>ระดับชั้น</h3>
+      <div class="chips" style="margin:0">${S.allLevels.map(l => `<span class="chip sel on" style="cursor:default">${esc(l)}</span>`).join('') || '<span class="muted sm">ยังไม่มี</span>'}</div>
+      <div class="row"><input class="inp" id="lvNew" placeholder="เช่น ม.2" maxlength="20"><button class="btn ghost" id="lvAdd">เพิ่ม</button></div></div>`, 'settings', true);
+  $('#lgFile').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const img = new Image(), url = URL.createObjectURL(f);
+    img.onload = () => {
+      const k = Math.min(1, 256 / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      logoData = cv.toDataURL('image/png'); removeLogo = false; URL.revokeObjectURL(url);
+      $('#lgPrev').innerHTML = `<img src="${logoData}" alt="">`; $('#lgDel').disabled = false;
     };
+    img.onerror = () => toast('อ่านไฟล์รูปไม่ได้', 'err'); img.src = url;
+  };
+  $('#lgDel').onclick = () => { logoData = ''; removeLogo = true; $('#lgPrev').textContent = $('#sName').value.charAt(0); $('#lgDel').disabled = true; };
+  $('#sSave').onclick = async e => {
+    e.target.disabled = true;
+    try {
+      const r = await api('saveSettings', { school_name: $('#sName').value, term: $('#sTerm').value, director_name: $('#sDir').value, logo_data: logoData, remove_logo: removeLogo });
+      S.cfg = { ...S.cfg, school_name: r.school_name, term: r.term, logo_url: r.logo_url }; toast('บันทึกแล้ว', 'ok'); renderSettings();
+    } catch (err) { toast(err.message, 'err'); e.target.disabled = false; }
+  };
+  $('#lvAdd').onclick = async () => {
+    try { S.allLevels = await api('addLevel', { level: $('#lvNew').value }); toast('เพิ่มระดับชั้นแล้ว', 'ok'); renderSettings(); } catch (e) { toast(e.message, 'err'); }
+  };
+}
 
-    $('settingsForm').onsubmit = event => {
-      event.preventDefault();
-
-      run(async () => {
-        if (dirty) throw new Error('กรุณาบันทึกเกรดที่แก้ไขอยู่ก่อน');
-
-        const subjects = meta.subjects.map((s, i) => ({
-          id: s.id,
-          weight: Number(document.querySelector(`[data-weight="${i}"]`).value),
-          include: document.querySelector(`[data-include="${i}"]`).checked
-        }));
-
-        const result = await api('settingsSave', {
-          school: $('schoolInput').value,
-          subjects
-        });
-
-        applyMeta(result);
-        currentClass = null;
-        $('classPanel').hidden = true;
-        notify('บันทึกการตั้งค่าแล้ว กรุณาโหลดห้องใหม่ก่อนทำงานต่อ');
-      });
-    };
-
-    $('changePasswordForm').onsubmit = event => {
-      event.preventDefault();
-      const oldPassword = $('oldPassword').value;
-      const newPassword = $('newPassword').value;
-      const confirmPassword = $('confirmPassword').value;
-
-      if (newPassword !== confirmPassword) {
-        notify('รหัสผ่านใหม่ไม่ตรงกัน');
-        return;
-      }
-
-      run(async () => {
-        await api('changePassword', { oldPassword, newPassword });
-        $('changePasswordForm').reset();
-        notify('เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-        setTimeout(() => logout(false), 2000);
-      });
-    };
-
-    window.addEventListener('beforeunload', event => {
-      if (dirty) {
-        event.preventDefault();
-        event.returnValue = '';
-      }
-    });
-
-    window.addEventListener('pageshow', event => {
-      if (event.persisted) logout(false);
-    });
-
-    run(async () => applyMeta(await api('meta')));
-  </script>
+/* ============================== เริ่มต้น ============================== */
+(async function init() {
+  try { S.cfg = { ...S.cfg, ...(await api('ping')) }; } catch (e) { /* ใช้ค่าเริ่มต้นไว้ก่อน */ }
+  document.title = S.cfg.school_name + ' — ผลการเรียนออนไลน์';
+  if (S.token) {
+    try {
+      const r = await api('me'); S.role = r.role; S.name = r.name; S.levels = r.levels || [];
+      if (r.role === 'student') return renderStudent();
+      return enterStaff();
+    } catch (e) { sessionStorage.removeItem('tk'); S.token = ''; }
+  }
+  renderLogin();
+})();
+</script>
 </body>
 </html>
